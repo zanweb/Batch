@@ -1,5 +1,6 @@
 # Batch
 ## 1. Purpose
+分批生产
 ### 1.1 Effective
 
 |col1|col2|col3|
