@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>444</width>
+    <height>427</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Batch</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="pushButton_show_orders">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>70</y>
+      <width>141</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>131</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Select Orders</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_batching">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>70</y>
+      <width>141</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>141</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Batching</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_show_batch_report">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>290</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>161</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Show Batch Report</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Step 1:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>30</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Step 2:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>130</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Step 3:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_nc_path">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>160</y>
+      <width>301</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>160</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>NC File Path:</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_browse_nc_path">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>190</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Browse</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_nc_deal">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>190</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Deal</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_stack_with_subparts">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>340</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Stacks with Subparts</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_stiff_view">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>490</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Stiff View</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_burn_view">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>640</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Burn/Drill View</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_clip_view">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>540</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Clip View</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_plate_view">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>590</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Plate line View</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_web_view">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>440</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Web View</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_flange_view">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>390</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Flange View</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_flange_report">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>390</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Report File For Flange</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_web_report">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>440</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Report File For Web</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_stiff_report">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>490</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Report File For Stiff</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_clip_report">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>540</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Report File For Clip</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_plate_report">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>590</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Report File For Plate</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_burn_report">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>640</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Report File For Burn</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_all_report">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>290</y>
+      <width>171</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Report File For All</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_Batch_the_Batch">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>260</y>
+      <width>261</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>260</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Batch the Batch:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>240</y>
+      <width>261</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Example: 1-5;6-10;10-15</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>444</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile_F">
+    <property name="title">
+     <string>File(&amp;F)</string>
+    </property>
+    <addaction name="actionSelect_Orders_Alt_S"/>
+    <addaction name="actionBatching_Alt_B"/>
+    <addaction name="actionNC_Deal"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit_Alt_X"/>
+   </widget>
+   <widget class="QMenu" name="menuReport_Alt_R">
+    <property name="title">
+     <string>Report(&amp;R)</string>
+    </property>
+    <addaction name="actionStack_Total_Alt_T"/>
+    <addaction name="actionFlange_Report"/>
+    <addaction name="actionWeb_Report"/>
+    <addaction name="actionStiff_Report"/>
+    <addaction name="actionClip_Report"/>
+    <addaction name="actionPlate_Report"/>
+    <addaction name="actionBurn_Drill_Report"/>
+   </widget>
+   <widget class="QMenu" name="menuView_V">
+    <property name="title">
+     <string>View(V)</string>
+    </property>
+    <addaction name="actionShow_Batch_Report"/>
+    <addaction name="actionStacks_with_Subparts"/>
+    <addaction name="actionFlange_View"/>
+    <addaction name="actionWeb_View"/>
+    <addaction name="actionStiff_View"/>
+    <addaction name="actionClip_View"/>
+    <addaction name="actionPlate_line_View"/>
+    <addaction name="actionBurn_Drill_View"/>
+   </widget>
+   <addaction name="menuFile_F"/>
+   <addaction name="menuView_V"/>
+   <addaction name="menuReport_Alt_R"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>22</height>
+    </size>
+   </property>
+  </widget>
+  <action name="actionSelect_Orders_Alt_S">
+   <property name="text">
+    <string>Select Orders(&amp;S)</string>
+   </property>
+  </action>
+  <action name="actionBatching_Alt_B">
+   <property name="text">
+    <string>Batching(&amp;B)</string>
+   </property>
+  </action>
+  <action name="actionStack_Total_Alt_T">
+   <property name="text">
+    <string>Stack Total(&amp;T)</string>
+   </property>
+  </action>
+  <action name="actionExit_Alt_X">
+   <property name="text">
+    <string>Exit(&amp;X)</string>
+   </property>
+  </action>
+  <action name="actionShow_Batch_Report">
+   <property name="text">
+    <string>Show Batch Report</string>
+   </property>
+  </action>
+  <action name="actionStacks_with_Subparts">
+   <property name="text">
+    <string>Stacks with Subparts</string>
+   </property>
+  </action>
+  <action name="actionFlange_View">
+   <property name="text">
+    <string>Flange View</string>
+   </property>
+  </action>
+  <action name="actionWeb_View">
+   <property name="text">
+    <string>Web View</string>
+   </property>
+  </action>
+  <action name="actionStiff_View">
+   <property name="text">
+    <string>Stiff View</string>
+   </property>
+  </action>
+  <action name="actionClip_View">
+   <property name="text">
+    <string>Clip View</string>
+   </property>
+  </action>
+  <action name="actionPlate_line_View">
+   <property name="text">
+    <string>Plate line View</string>
+   </property>
+  </action>
+  <action name="actionBurn_Drill_View">
+   <property name="text">
+    <string>Burn/Drill View</string>
+   </property>
+  </action>
+  <action name="actionFlange_Report">
+   <property name="text">
+    <string>Flange Report</string>
+   </property>
+  </action>
+  <action name="actionWeb_Report">
+   <property name="text">
+    <string>Web Report</string>
+   </property>
+  </action>
+  <action name="actionStiff_Report">
+   <property name="text">
+    <string>Stiff Report</string>
+   </property>
+  </action>
+  <action name="actionClip_Report">
+   <property name="text">
+    <string>Clip Report</string>
+   </property>
+  </action>
+  <action name="actionPlate_Report">
+   <property name="text">
+    <string>Plate Report</string>
+   </property>
+  </action>
+  <action name="actionBurn_Drill_Report">
+   <property name="text">
+    <string>Burn/Drill Report</string>
+   </property>
+  </action>
+  <action name="actionNC_Deal">
+   <property name="text">
+    <string>NC Deal</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
