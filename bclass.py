@@ -262,6 +262,178 @@ class BATCH:
         return self.order_parts_f
 
     def batching(self, by_web_or_flange, limit_flange_wt, limit_web_wt):
+        if 1 == by_web_or_flange:
+            parts = self.order_parts_f
+        else:
+            parts = self.order_parts_w
+
+        sequence = 0
+        stack = 0
+
+        sum_flange_wt = 0.0
+        sum_web_wt = 0.0
+        temp_qty = 0
+        stack_qty = 0
+        flange_wid = 0.0
+        flange_thk = 0.0
+        new_flange_size = ''
+        old_flange_size = ''
+
+        for row in parts:
+            # 数据准备
+            flange_wt = 0
+            web_wt = 0
+            temp_qty = 0
+            sequence += 1
+
+
+            p_qty = row[1]
+            p_no = row[0].no
+            p_len = row[0].len
+            rs_flange = row[0].flange
+            rs_web = row[0].web
+
+            # 计算flange_wt, web_wt
+            flange_wt = row[0].flange_wt
+            web_wt = row[0].web_wt
+
+            flange_thk = row[0].flange[0].thk
+            flange_wid = row[0].flange[0].wid
+            web_thk = row[0].web[0].thk
+            web_wid = row[0].web[0].wid
+            new_flange_size = str(flange_thk)   # + str(flange_wid)  2017/12/20
+            if new_flange_size != old_flange_size:   # 如果翼板厚度不同就换stack
+                stack += 1
+                sum_flange_wt = 0
+                sum_web_wt = 0
+                # pass
+
+            # 是否能直接加入   2018/01/04
+            if (sum_flange_wt + flange_wt * p_qty) <= limit_flange_wt and (sum_web_wt + web_wt * p_qty) <= limit_web_wt:
+                self.stacks.append([stack, sequence, row[0], p_qty, row[2]])
+                sum_flange_wt += flange_wt * p_qty
+                sum_web_wt += web_wt * p_qty
+                old_flange_size = new_flange_size
+                continue
+
+            # # 清理数据
+            # if (sum_flange_wt + flange_wt) > limit_flange_wt:  # 翼板堆重超
+            #     if (sum_web_wt + web_wt) > limit_web_wt:  # 腹板堆重超
+            #         sum_flange_wt = 0
+            #         sum_web_wt = 0
+            #         stack += 1
+            #         # sequence += 1
+            #     else:  # 腹板堆重不超
+            #         sum_flange_wt = 0
+            #         # sum_web_wt += web_wt  #2017/10/24
+            #         sum_web_wt = 0   # 2017/12/20
+            #         stack += 1
+            #         # sequence += 1
+            # else:  # 翼板堆重不超    elif sum_flange_wt > limit_flange_wt * 0.5:
+            #     if (sum_web_wt + web_wt) > limit_web_wt:  # 腹板堆重超
+            #         sum_flange_wt = 0  # 2017/12/20
+            #         sum_web_wt = 0
+            #         stack += 1   # 2017/12/20
+            #         pass
+            #     else:  # 腹板堆重不超
+            #         # sum_flange_wt = 0
+            #         # sum_web_wt = 0
+            #         # stack += 1
+            #         pass
+
+            # 读一组构件
+            # for pcs in range(p_qty):
+            # print(p_qty)
+            temp_web_qty = int((limit_web_wt - sum_web_wt) / web_wt)
+            temp_flange_qty = int((limit_flange_wt - sum_flange_wt) / flange_wt)
+            temp_qty = min(temp_web_qty, temp_flange_qty)
+            rest_qty = p_qty - temp_qty
+
+            if temp_qty < 1:
+                stack += 1
+                sum_flange_wt = 0
+                sum_web_wt = 0
+                # rest_qty = p_qty
+                # self.stacks.append([stack, sequence, row[0], rest_qty, row[2]])
+                # old_flange_size = new_flange_size
+                # sum_flange_wt += flange_wt * rest_qty
+                # sum_web_wt += web_wt * rest_qty
+                # continue
+            else:
+                self.stacks.append([stack, sequence, row[0], temp_qty, row[2]])
+                stack += 1
+                sequence += 1
+                sum_web_wt = 0
+                sum_flange_wt = 0
+
+            temp_web_qty = int((rest_qty * web_wt) / limit_web_wt)
+            temp_flange_qty = int((rest_qty * flange_wt) / limit_flange_wt)
+            temp_qty = min(temp_flange_qty, temp_web_qty)
+            if temp_qty < 1:
+                self.stacks.append([stack, sequence, row[0], rest_qty, row[2]])
+                sum_web_wt += rest_qty * web_wt
+                sum_flange_wt += rest_qty * flange_wt
+                old_flange_size = new_flange_size
+                continue
+            else:
+                for stack_index in range(temp_qty):
+                    self.stacks.append([stack, sequence, row[0], int(rest_qty / temp_qty), row[2]])
+                    stack += 1
+                    sequence += 1
+                self.stacks.append([stack, sequence, row[0], rest_qty % temp_qty, row[2]])
+                sum_flange_wt = (rest_qty % temp_qty) * flange_wt
+                sum_web_wt = (rest_qty % temp_qty) * web_wt
+
+            # for pcs in range(p_qty):
+            #     if limit_flange_wt >= (sum_flange_wt + flange_wt):  # 翼板堆重不超
+            #         if limit_web_wt >= (sum_web_wt + web_wt):  # 腹板堆重不超
+            #             temp_qty += 1
+            #             sum_flange_wt += flange_wt
+            #             sum_web_wt += web_wt
+            #         else:  # 腹板堆重超
+            #             # print(stack, ',', sequence, ',', p_no, ',', temp_qty, ',', sum_flange_wt, '---', sum_web_wt, '----',
+            #             #       flange_wid, '*', flange_thk, '---', web_thk, '*', web_wid, '-' * 5,
+            #             #       temp_qty * flange_wt, '-' * 5, temp_qty * web_wt)
+            #             self.stacks.append([stack, sequence, row[0], temp_qty, row[2]])
+            #             stack += 1
+            #             sequence += 1
+            #             sum_flange_wt += flange_wt
+            #             sum_web_wt = web_wt
+            #             temp_qty = 1
+            #     else:  # 翼板堆重超
+            #         if limit_web_wt >= (sum_web_wt + web_wt):  # 腹板堆重不超
+            #             # print(stack, ',', sequence, ',', p_no, ',', temp_qty, ',', sum_flange_wt, '---', sum_web_wt, '----',
+            #             #       flange_wid, '*', flange_thk, '---', web_thk, '*', web_wid, '-' * 5,
+            #             #       temp_qty * flange_wt, '-' * 5, temp_qty * web_wt)
+            #             self.stacks.append([stack, sequence, row[0], temp_qty, row[2]])
+            #             stack += 1
+            #             sequence += 1
+            #             sum_flange_wt = flange_wt
+            #             # sum_web_wt += web_wt   # 2017/12/20
+            #             sub_web_wt = web_wt   # 2017/12/20
+            #             # print('flange ok++++++++web ok++++++++')
+            #             temp_qty = 1
+            #         else:  # 腹板堆重超
+            #             # print(stack, ',', sequence, ',', p_no, ',', temp_qty, ',', sum_flange_wt, '---', sum_web_wt, '----',
+            #             #       flange_wid, '*', flange_thk, '---', web_thk, '*', web_wid, '-' * 5,
+            #             #       temp_qty * flange_wt, '-' * 5, temp_qty * web_wt)
+            #             self.stacks.append([stack, sequence, row[0], temp_qty, row[2]])
+            #             stack += 1
+            #             sequence += 1
+            #             sum_flange_wt = flange_wt
+            #             sum_web_wt = web_wt
+            #             # print('flange ok++++++++web ok++++++++')
+            #             temp_qty = 1
+            #
+            # # print(stack, ',', sequence, ',', p_no, ',', temp_qty, ',', sum_flange_wt, '---', sum_web_wt, '----',
+            # #       flange_wid, '*', flange_thk, '---', web_thk, '*', web_wid, '-' * 5,
+            # #       temp_qty * flange_wt, '-' * 5, temp_qty * web_wt)
+            # self.stacks.append([stack, sequence, row[0], temp_qty, row[2]])
+            # # print('+++++++++++++++++end of part type ++++++++++++++')
+            old_flange_size = new_flange_size
+        return self.stacks
+
+    def batching_org_20171225(self, by_web_or_flange, limit_flange_wt, limit_web_wt):
         # by_web_or_flange , web = 0, flange = 1
         # print('by_web_or_flange', by_web_or_flange)
         if 1 == by_web_or_flange:
@@ -398,7 +570,7 @@ class BATCH:
             old_flange_size = new_flange_size
         return self.stacks
 
-    def batching_org_20171020(self, by_web_or_flange, limit_flange_wt, limit_web_wt):
+    def batching_org_20171220(self, by_web_or_flange, limit_flange_wt, limit_web_wt):
         # by_web_or_flange , web = 0, flange = 1
         # print('by_web_or_flange', by_web_or_flange)
         if 1 == by_web_or_flange:
