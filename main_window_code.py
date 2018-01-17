@@ -943,9 +943,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     for my_part in my_parts:
                         my_part.get_man_hour_hw()
 
-                    self.create_out_fold()
-                    self.flange_nc_to_fmi()
-                    self.flange_nc_to_ped()
+                    # Camgen function -----------------------
+                    reply = QMessageBox.information(self,
+                                                    'Run Camgen?',
+                                                    'Do you want run Camgen funcion?',
+                                                    QMessageBox.Ok | QMessageBox.Cancel)
+                    if reply == QMessageBox.Ok:
+                        self.create_out_fold()
+                        self.flange_nc_to_fmi()
+                        self.flange_nc_to_ped()
 
                     self.show_info('Finish Read NC', 'I have finished reading NC Files!')
                     self.batch_state = 3
