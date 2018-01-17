@@ -136,7 +136,8 @@ class PART:
         full_weld_qty = self.full_weld_qty if self.full_weld_qty else 0
 
         self.man_hour_hw = (0.75 + 0.05 * weld_foot) * (1 + 0.3 * double_weld) * (10 + 0.001 * self.len)
-        self.man_hour_hw += end_plate_qty * (10 + 0.002 * self.wid) * (1.82 + 0.001 * self.high) * (0.76 + 0.02 * self.flange_thk) * (1 + 0.2 * full_weld)
+        self.man_hour_hw += end_plate_qty * (10 + 0.002 * self.wid) * (1.82 + 0.001 * self.high) * (
+                    0.76 + 0.02 * self.flange_thk) * (1 + 0.2 * full_weld)
         self.man_hour_hw += stiff_qty * (5 + 0.0015 * self.wid)
         self.man_hour_hw += (6 + 0.0005 * self.len) * (0.7 + 0.0005 * self.wid)
         self.man_hour_hw += full_weld_qty * 15
@@ -286,7 +287,6 @@ class BATCH:
             temp_qty = 0
             sequence += 1
 
-
             p_qty = row[1]
             p_no = row[0].no
             p_len = row[0].len
@@ -301,8 +301,8 @@ class BATCH:
             flange_wid = row[0].flange[0].wid
             web_thk = row[0].web[0].thk
             web_wid = row[0].web[0].wid
-            new_flange_size = str(flange_thk)   # + str(flange_wid)  2017/12/20
-            if new_flange_size != old_flange_size:   # 如果翼板厚度不同就换stack
+            new_flange_size = str(flange_thk)  # + str(flange_wid)  2017/12/20
+            if new_flange_size != old_flange_size:  # 如果翼板厚度不同就换stack
                 stack += 1
                 sum_flange_wt = 0
                 sum_web_wt = 0
@@ -380,9 +380,12 @@ class BATCH:
                     self.stacks.append([stack, sequence, row[0], int(rest_qty / temp_qty), row[2]])
                     stack += 1
                     sequence += 1
-                self.stacks.append([stack, sequence, row[0], rest_qty % temp_qty, row[2]])
-                sum_flange_wt = (rest_qty % temp_qty) * flange_wt
-                sum_web_wt = (rest_qty % temp_qty) * web_wt
+                if 0 != rest_qty % temp_qty:
+                    self.stacks.append([stack, sequence, row[0], rest_qty % temp_qty, row[2]])
+                    sum_flange_wt = (rest_qty % temp_qty) * flange_wt
+                    sum_web_wt = (rest_qty % temp_qty) * web_wt
+                else:
+                    sequence -= 1
 
             # for pcs in range(p_qty):
             #     if limit_flange_wt >= (sum_flange_wt + flange_wt):  # 翼板堆重不超
@@ -467,7 +470,6 @@ class BATCH:
             temp_qty = 0
             sequence += 1
 
-
             p_qty = row[1]
             p_no = row[0].no
             p_len = row[0].len
@@ -487,7 +489,7 @@ class BATCH:
             flange_wid = row[0].flange[0].wid
             web_thk = row[0].web[0].thk
             web_wid = row[0].web[0].wid
-            new_flange_size = str(flange_thk)   # + str(flange_wid)  2017/12/20
+            new_flange_size = str(flange_thk)  # + str(flange_wid)  2017/12/20
             if new_flange_size != old_flange_size:
                 stack += 1
                 sum_flange_wt = 0
@@ -503,14 +505,14 @@ class BATCH:
                 else:  # 腹板堆重不超
                     sum_flange_wt = 0
                     # sum_web_wt += web_wt  #2017/10/24
-                    sum_web_wt = 0   # 2017/12/20
+                    sum_web_wt = 0  # 2017/12/20
                     stack += 1
                     # sequence += 1
             else:  # 翼板堆重不超    elif sum_flange_wt > limit_flange_wt * 0.5:
                 if (sum_web_wt + web_wt) > limit_web_wt:  # 腹板堆重超
                     sum_flange_wt = 0  # 2017/12/20
                     sum_web_wt = 0
-                    stack += 1   # 2017/12/20
+                    stack += 1  # 2017/12/20
                     pass
                 else:  # 腹板堆重不超
                     # sum_flange_wt = 0
@@ -547,7 +549,7 @@ class BATCH:
                         sequence += 1
                         sum_flange_wt = flange_wt
                         # sum_web_wt += web_wt   # 2017/12/20
-                        sub_web_wt = web_wt   # 2017/12/20
+                        sub_web_wt = web_wt  # 2017/12/20
                         # print('flange ok++++++++web ok++++++++')
                         temp_qty = 1
                     else:  # 腹板堆重超
