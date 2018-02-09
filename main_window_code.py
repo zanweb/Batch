@@ -996,9 +996,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.statusBar.showMessage('Message: Now Batching! ' + self.orders[0] + ' Please Wait a moment...')
         self.orders = self.tableWidget_orders.selected_orders
+        # print("self.orders---" + str(self.orders))
         # -----需要修改
         # -----获取orders的列表
         orders_b = self.tableWidget_orders.selected_orders[::4]
+        # print("orders_b---" + str(orders_b))
         # print(orders_b)
 
         # orders_b = [self.orders[0]]
@@ -1010,15 +1012,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.batch_c.quantity += order_c.quantity
             self.batch_c.weight += order_c.weight
             self.batch_c.orders_quantity += 1
-            self.batch_c.get_batch_parts()
-            self.batch_c.sort_by_flange()
-            self.batch_c.sort_by_web()
-            web_flange = self.by_web_or_flange
+
+        self.batch_c.get_batch_parts()
+        self.batch_c.sort_by_flange()
+        self.batch_c.sort_by_web()
+        web_flange = self.by_web_or_flange
+
         self.batch_c.sum_area()
         # print('by_web_or_flange', self.by_web_or_flange, '--', self.limit_flange_wt, '---', self.limit_web_wt)
         # print(self.batch_c.order_parts_f)
         # print('---------------------')
         # print(self.batch_c.order_parts_w)
+        # print('batch_c.orders---' + str(self.batch_c.orders))
         self.batch_c.batching(web_flange, self.limit_flange_wt, self.limit_web_wt)
         # if 0 == self.by_web_or_flange:  # by web
         #     print('by_web_ing')
