@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QTableWidget, QVBoxLayout, QHBoxLayout, QTableWidgetItem, QComboBox, \
     QFrame, QMenu, QLineEdit, QPushButton, QMessageBox
 from PyQt5.QtGui import QFont, QColor, QBrush, QPixmap, QCursor
@@ -8,6 +8,7 @@ from PyQt5.QtGui import QFont, QColor, QBrush, QPixmap, QCursor
 
 
 class AllOrders(QWidget):
+    close_signal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -106,7 +107,8 @@ class AllOrders(QWidget):
         # print('select')
         # print(self.selected_orders)
 
-        self.hide()
+        # self.hide()
+        self.close()
 
     def search_order(self):
         items = self.table.findItems(self.searchBox.text(), Qt.MatchExactly)
@@ -119,9 +121,12 @@ class AllOrders(QWidget):
             msg_box.setText("Can't find your Order!")
             msg_box.exec()
 
-    # def close_event(self, Event):
-    #     pass
-    #     # print('close even captured')
+    def closeEvent(self, Event):
+        # pass
+        # return self.selected_orders
+        self.close_signal.emit()
+        # print('close even captured')
+        # self.close()
 
 
 if __name__ == '__main__':

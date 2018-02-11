@@ -75,6 +75,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.pushButton_show_orders.setGeometry(QRect(30, 70, 141, 51))
         # self.pushButton_show_orders.setObjectName('pushButton_show_orders')
         # self.pushButton_show_orders.setText('Select Order')
+
         self.pushButton_show_orders.clicked.connect(self.show_orders)
         self.loginD.pushButton.clicked.connect(self.get_user_info)
         self.pushButton_batching.clicked.connect(self.get_batch)
@@ -144,6 +145,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                          'PartNo', 'PartLen', 'PartQty', 'PartDesc', 'OrderNo']
         self.writer = ''
         self.out_fold = ''
+
+        self.tableWidget_orders.close_signal.connect(self.show_message)
 
     # def __del__(self):
     #     del self.batch_c, self.loginD, self.tableWidget_orders
@@ -1039,14 +1042,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.show_info('Finish', 'Finish batching')
 
     def show_orders(self):
+        self.statusBar.showMessage('Message: You have selected the Orders: ' + str(self.orders))
         self.get_all_orders()
         self.tableWidget_orders.all_order = self.all_order
         self.tableWidget_orders.set_table()
         self.tableWidget_orders.show()
         self.get_orders()
-
         self.repaint()
-        self.statusBar.showMessage('Message: You have selected the Orders: ' + str(self.orders))
 
     def get_orders(self):
         self.orders = self.tableWidget_orders.selected_orders
@@ -1063,6 +1065,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         cf = configparser.ConfigParser()
         cf.read('config.ini')
         self.by_web_or_flange = int(cf.get('by_web_or_flange', 'by_web_or_flange'))
+        self.limit_flange_wt = int(cf.get('limit', 'limit_flange_wt'))
+        self.limit_web_wt = int(cf.get('limit', 'limit_web_wt'))
         # print(self.by_web_or_flange)
         if self.user_info[0] != '':
             self.server = cf.get(self.user_info[0], 'server')
@@ -1103,6 +1107,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def set_nc_path(self, nc_path):
         self.nc_path = nc_path  # 'E:\Zanweb\PythonProgram\Batch\爱仕达11#NC文件\\'
         return nc_path
+
+    def show_message(self):
+        self.statusBar.showMessage('Message: You have selected the Orders: ' + str(self.tableWidget_orders.selected_orders))
 
 
 if __name__ == '__main__':
