@@ -1,6 +1,7 @@
+from CamGen import FMIBase
+from CamGen import LxmlBase
 from CamGen import NCBase
 from CamGen import PedBase
-from CamGen import FMIBase
 
 
 def __init(self):
@@ -77,6 +78,14 @@ class FMIWrite(IWriter):
         fmi_flange.save_file(file_with_path)
 
 
+class TSCIIWrite(IWriter):
+    def write(self, nc_info, file_with_path):
+        xml = LxmlBase.XmlGen(file_with_path)
+        xml.trans_from_nc(nc_info)
+        xml.gen_tree()
+        # =========================================
+
+
 class DataFactory:
     def get_data(self):
         pass
@@ -109,9 +118,19 @@ class FMIData(DataFactory):
         return temp
 
 
+class TSCIIData(DataFactory):
+    def get_data(self):
+        temp = NcRead()
+        return temp
+
+    def set_data(self):
+        temp = TSCIIWrite()
+        return temp
+
+
 if __name__ == "__main__":
-    data = FMIData()
+    data = TSCIIData()
     reader = data.get_data()
     writer = data.set_data()
-    nc_info = reader.read('E:\Zanweb\PythonProgram\Batch\Camgen\A82.nc1')
-    writer.write(nc_info, 'E:\Zanweb\PythonProgram\Batch\Camgen\A82.')
+    nc_info = reader.read('E:/Zanweb/Bradbury_Import_Test/20180308_NC/SK10351.nc1')
+    writer.write(nc_info, 'E:/Zanweb/PythonProgram/Batch/Camgen/bbtest.xml')
