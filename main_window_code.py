@@ -1,31 +1,30 @@
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from PyQt5.QtGui import QCursor
-
-from os import *
-import pandas as pd
-from datetime import date
 import configparser
 import re
+from datetime import date
+from os import *
 
-from main_window import *
+import pandas as pd
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
+
 from CamgenInterface import *
-# from Camgen import *
-from CamGen import *
-
-# all_order = c_get_all_orders()
-# print(all_order[0]['ProjName'])
-
-from stack_all import *
-from stack_subpart import *
-from batch_login_code import LoginDialog
 from all_orders import AllOrders
-from stack_stiff import StackStiff
+from batch_login_code import LoginDialog
+from main_window import *
+from stack_Plat import StackPlate
+from stack_all import *
 from stack_burn import StackBurn
 from stack_clip import StackClip
-from stack_Plat import StackPlate
-from stack_web import StackWeb
 from stack_flange import StackFlange
+from stack_stiff import StackStiff
+from stack_subpart import *
+from stack_web import StackWeb
+
+
+# from Camgen import *
+# all_order = c_get_all_orders()
+# print(all_order[0]['ProjName'])
 
 
 class MyPushbutton(QtWidgets.QPushButton):
@@ -1109,7 +1108,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         return nc_path
 
     def show_message(self):
-        self.statusBar.showMessage('Message: You have selected the Orders: ' + str(self.tableWidget_orders.selected_orders))
+        self.statusBar.showMessage(
+            'Message: You have selected the Orders: ' + str(self.tableWidget_orders.selected_orders))
 
 
 if __name__ == '__main__':

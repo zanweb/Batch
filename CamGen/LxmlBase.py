@@ -25,8 +25,94 @@ class XmlGen:
         self.xml_name = xml_name
         self.header = Head()
         self.holes = []
-        self.web_hole_type1 = 'W16D'
-        self.web_hole_type2 = 'W16O'
+        self.web_hole_D = 'W16D'
+        self.web_hole_O = 'W16O'
+        self.web_hole_khsx4 = 'KHSX4'
+        self.flange_hole_top_14 = 'F14D'
+        self.flange_hole_top_8 = 'F8D'
+        self.flange_hole_bottom_16 = 'F16O'
+        self.up_to_down = True
+        # o-plane no holes or has 8 diameter holes---False, o-plane on drive side
+        # o-plane only 14 diameter holes -- True, o-plane on operate side
+
+    def set_hole_name(self, hole_name):
+        for hole in hole_name:
+            if hole['HoleType'] == 'TopFlange_14':
+                self.flange_hole_top_14 = hole['HoleName']
+            if hole['HoleType'] == 'BottomFlange_16':
+                self.flange_hole_bottom_16 = hole['HoleName']
+            if hole['HoleType'] == 'WebNearTop_16':
+                self.web_hole_D = hole['HoleName']
+            if hole['HoleType'] == 'WebNearBottom_16':
+                self.web_hole_O = hole['HoleName']
+            if hole['HoleType'] == 'Web_4KeyHoleSlots':
+                self.web_hole_khsx4 = hole['HoleName']
+            if hole['HoleType'] == 'TopFlange_8':
+                self.flange_hole_top_8 = hole['HoleName']
+            # print(self.flange_hole_top_14)
+
+    def up_or_down(self, o_holes):
+        if not o_holes:
+            self.up_to_down = False
+        else:
+            for single_hole in o_holes:
+                if single_hole.diameter == 8:
+                    self.up_to_down = False
+                    break
+
+    def add_top_side_holes(self, holes):
+        for single_hole in holes:
+            if single_hole.diameter == 14:
+                hole = Hole()
+                hole.x = single_hole.x
+                hole.y = single_hole.y
+                hole.type = self.flange_hole_top_14
+                self.holes.append(hole)
+            if single_hole.diameter == 8:
+                hole = Hole()
+                hole.x = single_hole.x
+                hole.y = single_hole.y
+                hole.type = self.flange_hole_top_8
+                self.holes.append(hole)
+
+    def add_bottom_side_holes(self, holes):
+        for single_hole in holes:
+            if single_hole.diameter == 14:
+                hole = Hole()
+                hole.x = single_hole.x
+                hole.y = single_hole.y
+                hole.type = self.flange_hole_bottom_16
+                self.holes.append(hole)
+
+    def add_web_holes(self, holes):
+        pre_hole_x = 0.0
+        pre_hole_y = 0.0
+        for single_hole in holes:
+            hole = Hole()
+            # 腹板16孔处理
+            if single_hole.diameter == 14:
+                if single_hole.x == pre_hole_x:
+                    continue
+                hole.x = single_hole.x
+                hole.y = 0.0
+                hole.type = self.web_hole_D
+                self.holes.append(hole)
+                hole = Hole()
+                hole.x = single_hole.x
+                hole.y = 0.0
+                hole.type = self.web_hole_O
+                self.holes.append(hole)
+                pre_hole_x = hole.x
+            # 腹板腰圆孔处理
+            if single_hole.diameter == 13.5:
+                if single_hole.x == pre_hole_x or single_hole.x == (pre_hole_x + 75):
+                    continue
+                hole.x = single_hole.x + 37.5
+                hole.y = 0.0
+                hole.type = self.web_hole_khsx4
+                self.holes.append(hole)
+                pre_hole_x = hole.x - 37.5
+                pre_hole_y = single_hole.y
 
     def creat_element(self, element_name):
         return etree.Element(element_name)
@@ -51,22 +137,38 @@ class XmlGen:
         self.header.length = int(nc_info.header.length)
         self.header.quantity = int(nc_info.header.quantity)
         # deal with holes
-        pre_hole_x = 0.0
-        for single_hole in nc_info.holes:
-            hole = Hole()
+        # print('deal with holes')
+        plane_holes = self.get_plane_holes(nc_info.holes)
+        self.up_or_down(plane_holes[0])
+        # print(plane_holes[2])
+        if not self.up_to_down:
+            self.add_top_side_holes(plane_holes[0])
+            self.add_bottom_side_holes(plane_holes[1])
+            self.add_web_holes(plane_holes[2])
+        else:
+            self.add_top_side_holes(plane_holes[1])
+            self.add_bottom_side_holes(plane_holes[0])
+            self.add_web_holes(plane_holes[2])
+
+    def get_plane_holes(self, nc_holes):
+        plane_holes = []
+        v_holes = []
+        u_holes = []
+        o_holes = []
+        # h_holes = []
+        for single_hole in nc_holes:
+            # print(single_hole.plane)
+            if single_hole.plane == 'o' and single_hole.reference == 's' and single_hole.hole_type == '':
+                o_holes.append(single_hole)
+            if single_hole.plane == 'u' and single_hole.reference == 's' and single_hole.hole_type == '':
+                u_holes.append(single_hole)
             if single_hole.plane == 'v' and single_hole.reference == 'o' and single_hole.hole_type == '':
-                if single_hole.x == pre_hole_x:
-                    continue
-                hole.x = int(single_hole.x)
-                hole.y = 0.0
-                hole.type = self.web_hole_type1
-                self.holes.append(hole)
-                hole = Hole()
-                hole.x = int(single_hole.x)
-                hole.y = 0.0
-                hole.type = self.web_hole_type2
-                self.holes.append(hole)
-                pre_hole_x = hole.x
+                v_holes.append(single_hole)
+        plane_holes.append(o_holes)
+        plane_holes.append(u_holes)
+        plane_holes.append(v_holes)
+        # print(o_holes)
+        return plane_holes
 
     def gen_tree(self):
         orders = self.creat_element('Orders')

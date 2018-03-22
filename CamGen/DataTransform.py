@@ -79,8 +79,9 @@ class FMIWrite(IWriter):
 
 
 class TSCIIWrite(IWriter):
-    def write(self, nc_info, file_with_path):
+    def write(self, nc_info, file_with_path, hole_name):
         xml = LxmlBase.XmlGen(file_with_path)
+        xml.set_hole_name(hole_name)
         xml.trans_from_nc(nc_info)
         xml.gen_tree()
         # =========================================
@@ -129,8 +130,12 @@ class TSCIIData(DataFactory):
 
 
 if __name__ == "__main__":
+    import zConvert_code
+    hole_name = {}
+
+
     data = TSCIIData()
     reader = data.get_data()
     writer = data.set_data()
-    nc_info = reader.read('E:/Zanweb/Bradbury_Import_Test/20180308_NC/SK10351.nc1')
-    writer.write(nc_info, 'E:/Zanweb/PythonProgram/Batch/Camgen/bbtest.xml')
+    nc_info = reader.read('E:/Zanweb/Bradbury_Import_Test/20180316_NC/CK10504.nc1')
+    writer.write(nc_info, 'E:/Zanweb/PythonProgram/Batch/Camgen/CK10504.xml', hole_name)

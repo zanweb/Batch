@@ -260,6 +260,8 @@ class GetHoles(GetSection):
                 single_hole.height = float(re.findall(r"\d+\.?\d*", single_hole_info[6])[0])
                 single_hole.angle = float(re.findall(r"\d+\.?\d*", single_hole_info[7])[0])
             holes.append(single_hole)
+        # print(file_info)
+        # print(holes)
         return holes
 
 
@@ -304,20 +306,22 @@ class Nc:  # nc file
         for line in file:
             if line.strip() in bloc:
                 if bloc_list:
-                    self.file_info[bloc_name] = bloc_list
+                    if bloc_name in self.file_info.keys():
+                        self.file_info[bloc_name].extend(bloc_list)
+                    else:
+                        self.file_info[bloc_name] = bloc_list
                 bloc_name = line.strip()
                 bloc_list = []
                 continue
-
             if str(line.strip()).find('**') == -1:
                 bloc_list.append(line.strip())
-                # file_lines.append(line.strip())
         file.close()
-
+        # print(self.file_info)
         return self.file_info
 
     def file_information(self):
         info = None
+        # print(self.file_info)
         for key in self.file_info:
             factory = SectionFactory()
             read_sec = factory.create_section(key)
