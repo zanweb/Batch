@@ -6,21 +6,30 @@ class CsvFile:
         self.file_with_path = file_with_path
         self.seq_info = []
 
+    def del_lines_begin(self, to_be_deleted):
+        data = open(self.file_with_path, 'rt').readlines()
+        if data[0].find('BSCN Batch Production Data for Cladding Report') != -1:
+            with open(self.file_with_path, 'wt') as handle:
+                # handle.writelines(data[:to_be_deleted])
+                handle.writelines(data[to_be_deleted + 1:])
+                # handle.readline(0)
+                handle.close()
+
     def get_seq_list(self):
         try:
             with open(self.file_with_path) as f:
                 f_csv = csv.DictReader(f)
-
+                name_unit_length = f_csv
                 for row in f_csv:
                     info_line = {}
-                    # print(row)
+                    print(row)
                     info_line['Unit Length'] = row['Unit Length']
-                    info_line['Qty'] = row['Qty']
-                    info_line['Item'] = str(row['Item']).split('*')[0]  # [:7]
-                    info_line['So'] = row['So']
-                    info_line['Sorts'] = row['Sorts']
+                    info_line['Qty'] = row['Fa Qty']
+                    info_line['Item'] = str(row['Fa Item']).split('*')[0]  # [:7]
+                    info_line['So'] = row['Order Num']
+                    info_line['Sorts'] = row['Sort Id']
 
-                    # print(info_line['Item'])
+                    print(info_line['Item'])
                     self.seq_info.append(info_line)
                 f.close()
         except Exception as e:
@@ -69,7 +78,7 @@ class CsvFile:
 
 
 if __name__ == '__main__':
-    csv_f = CsvFile('E:/Zanweb/Bradbury_Import_Test/in_test/Bundle.csv')
+    csv_f = CsvFile('E:/Zanweb/Bradbury_Import_Test/in_test/BSCN.csv')
     csv_info = csv_f.get_seq_list()
     for row in csv_info:
         print(row)

@@ -36,13 +36,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.out_folder = self.lineEdit_ConvertPath.text()
 
     def get_item_list(self):
-        seq_file = zFBase.get_indicate_ext_file(self.in_folder, 'csv')
+        seq_file = zFBase.get_indicate_ext_file(self.in_folder, 'CSV')
         if seq_file:
             file_name = seq_file[0] + '.csv'
             file_full_path = os.path.join(self.in_folder, file_name)
             csv_file = zCSV.CsvFile(file_full_path)
+            csv_file.del_lines_begin(8)
             self.item_list = csv_file.get_seq_list()
-            # print(self.item_list)
+            print(self.item_list)
         else:
             QMessageBox.warning(self, '错误', '没有制作清单文件!\n请在NC文件夹内添加制作清单文件！\n程序将关闭！', QMessageBox.Ok)
             exit()
