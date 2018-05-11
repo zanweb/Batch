@@ -23,14 +23,15 @@ class CsvFile:
                 for row in f_csv:
                     info_line = {}
                     print(row)
-                    info_line['Unit Length'] = row['Unit Length']
-                    info_line['Qty'] = row['Fa Qty']
-                    info_line['Item'] = str(row['Fa Item']).split('*')[0]  # [:7]
-                    info_line['So'] = row['Order Num']
-                    info_line['Sorts'] = row['Sort Id']
+                    if str(row['Sort Complete']).strip(' ') != 'Y':
+                        info_line['Unit Length'] = row['Unit Length']
+                        info_line['Qty'] = row['Fa Qty']
+                        info_line['Item'] = str(row['Fa Item']).split('*')[0]  # [:7]
+                        info_line['So'] = row['Order Num']
+                        info_line['Sorts'] = row['Sort Id']
 
-                    print(info_line['Item'])
-                    self.seq_info.append(info_line)
+                        print(info_line['Item'])
+                        self.seq_info.append(info_line)
                 f.close()
         except Exception as e:
             print(e)
