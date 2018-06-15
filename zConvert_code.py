@@ -15,7 +15,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.in_folder = ''
         self.out_folder = ''
-        self.item_list = []  # dic list {Item, Qty, Unit length}
+        self.item_list = []  # dic list {Item, Qty, Unit length, Thk}
         self.make_item_list = []
         self.z_profile = []
         self.z_mtl = {}
@@ -55,7 +55,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 file_name = item['Item'] + '.nc1'
                 file_full_path = os.path.join(self.in_folder, file_name)
                 out_file_name = item['Item'] + '.xml'
-                out_file_path = self.out_folder + '/' + item['Sorts']
+                out_file_path = self.out_folder + '/' + item['Thk'] + item['Sorts']
                 if not os.path.exists(out_file_path):
                     os.makedirs(out_file_path)
                 out_file_full_path = os.path.join(out_file_path, out_file_name)
@@ -70,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 nc_info.header.order = item['So']  # 图纸中的还是清单中？
                 nc_info.header.quantity = item['Qty']
                 nc_info.header.profile_height = self.z_mtl['Width']
-                if nc_info.header.length != float(item['Unit Length']):  # 长度是否需要更改？
+                if abs(nc_info.header.length - float(item['Unit Length'])) > 0.5:  # 长度是否需要更改？
                     QMessageBox.warning(self, '警告:', nc_info.header.drawing + ':清单长度与NC文件中的长度不同，\n将采用NC文件中的长度！')
                 writer.write(nc_info, out_file_full_path, self.home_name)
         else:

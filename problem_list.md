@@ -214,5 +214,31 @@ what is needed to start Batch Production of plasma
  
  * The problem of Frame and Purlin direction
  - We have the direction from design and detail like following now:
+ 
+ 
+ # 2018/06/01
+ Problem signature:
+  Problem Event Name:	APPCRASH
+  Application Name:	zConvert_Beta_180530.exe
+  Application Version:	0.0.0.0
+  Application Timestamp:	5a2e9f14
+  Fault Module Name:	python34.dll
+  Fault Module Version:	3.4.3150.1013
+  Fault Module Timestamp:	54ecf0c8
+  Exception Code:	c0000005
+  Exception Offset:	000000000010422d
+  OS Version:	6.1.7601.2.1.0.256.48
+  Locale ID:	2052
+  Additional Information 1:	e19c
+  Additional Information 2:	e19c1ba2e619fd0c270ba601dd0421ec
+  Additional Information 3:	6bfa
+  Additional Information 4:	6bfaa3f95697fb5470345f222ffc112e
+
+Read our privacy statement online:
+  http://go.microsoft.com/fwlink/?linkid=104288&clcid=0x0409
+
+If the online privacy statement is not available, please read our privacy statement offline:
+  C:\Windows\system32\en-US\erofflps.txt
+
 
 
