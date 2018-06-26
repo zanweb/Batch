@@ -55,7 +55,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 file_name = item['Item'] + '.nc1'
                 file_full_path = os.path.join(self.in_folder, file_name)
                 out_file_name = item['Item'] + '.xml'
-                out_file_path = self.out_folder + '/' + item['Thk'] + item['Sorts']
+                out_file_path = self.out_folder + '/' + item['Thk'] + '_' + item['Sorts']
                 if not os.path.exists(out_file_path):
                     os.makedirs(out_file_path)
                 out_file_full_path = os.path.join(out_file_path, out_file_name)

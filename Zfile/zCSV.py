@@ -1,4 +1,5 @@
 import csv
+import re
 
 
 class CsvFile:
@@ -29,7 +30,7 @@ class CsvFile:
                         info_line['Item'] = str(row['Fa Item']).split('*')[0][:7]
                         info_line['So'] = row['Order Num']
                         info_line['Sorts'] = row['Sort Id']
-                        info_line['Thk'] = str(row['Item Desc'])[:5]
+                        info_line['Thk'] = re.findall(r'\d+\.\d+', str(row['Item Desc']))[0]  # str(row['Item Desc'])[:5]
 
                         print(info_line['Item'])
                         self.seq_info.append(info_line)
