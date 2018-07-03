@@ -59,6 +59,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 if not os.path.exists(out_file_path):
                     os.makedirs(out_file_path)
                 out_file_full_path = os.path.join(out_file_path, out_file_name)
+
                 # print(out_file_full_path)
 
                 data = DataTransform.TSCIIData()
