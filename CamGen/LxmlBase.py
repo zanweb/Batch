@@ -181,8 +181,9 @@ class XmlGen:
         self.set_element_attr(part, 'Width', str(self.header.width))  # ===============
         self.set_element_attr(part, 'Length', str(self.header.length))  # ===============
         self.set_element_attr(part, 'RequestedQty', str(self.header.quantity))  # ===============
-        print_string = self.creat_sub_element('PrintString', part)
-        print_string.text = str(self.header.part_name)
+        self.set_element_attr(part, 'PrintString', str(self.header.part_name))  # ===============
+        # print_string = self.creat_sub_element('PrintString', part)
+        # print_string.text = str(self.header.part_name)
         xml_holes = self.creat_sub_element('Holes', part)
         # print(self.holes)
         for single_hole in self.holes:
