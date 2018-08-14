@@ -158,12 +158,26 @@ class XmlGen:
         # h_holes = []
         for single_hole in nc_holes:
             # print(single_hole.plane)
+            # print(single_hole.reference)
             if single_hole.plane == 'o' and single_hole.reference == 's' and single_hole.hole_type == '':
+                o_holes.append(single_hole)
+            if single_hole.plane == 'o' and single_hole.reference == 'o' and single_hole.hole_type == '':
+                o_holes.append(single_hole)
+            if single_hole.plane == 'o' and single_hole.reference == 'u' and single_hole.hole_type == '':
                 o_holes.append(single_hole)
             if single_hole.plane == 'u' and single_hole.reference == 's' and single_hole.hole_type == '':
                 u_holes.append(single_hole)
+            if single_hole.plane == 'u' and single_hole.reference == 'o' and single_hole.hole_type == '':
+                u_holes.append(single_hole)
+            if single_hole.plane == 'u' and single_hole.reference == 'u' and single_hole.hole_type == '':
+                u_holes.append(single_hole)
             if single_hole.plane == 'v' and single_hole.reference == 'o' and single_hole.hole_type == '':
                 v_holes.append(single_hole)
+            if single_hole.plane == 'v' and single_hole.reference == 'u' and single_hole.hole_type == '':
+                v_holes.append(single_hole)
+            if single_hole.plane == 'v' and single_hole.reference == 's' and single_hole.hole_type == '':
+                v_holes.append(single_hole)
+
         plane_holes.append(o_holes)
         plane_holes.append(u_holes)
         plane_holes.append(v_holes)
