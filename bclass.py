@@ -343,6 +343,11 @@ class BATCH:
             temp_web_qty = int((rest_qty * web_wt) / limit_web_wt)
             temp_flange_qty = int((rest_qty * flange_wt) / limit_flange_wt)
             temp_qty = max(temp_flange_qty, temp_web_qty)
+            if (temp_qty == temp_flange_qty) & (0 != temp_qty):
+                temp_qty = int(p_qty/int(p_qty/temp_qty))
+            if (temp_qty == temp_web_qty) & (0 != temp_qty):
+                temp_qty = int(p_qty/int(p_qty/temp_qty))
+
             if temp_qty < 1:
                 self.stacks.append([stack, sequence, row[0], rest_qty, row[2]])
                 sum_web_wt += rest_qty * web_wt
@@ -350,7 +355,8 @@ class BATCH:
                 old_flange_size = new_flange_size
                 continue
             else:
-                stack_qty = temp_qty + 1
+                # stack_qty = temp_qty + 1
+                stack_qty = temp_qty
                 for stack_index in range(stack_qty):
                     self.stacks.append([stack, sequence, row[0], int(rest_qty / stack_qty), row[2]])
                     stack += 1
@@ -361,6 +367,8 @@ class BATCH:
                     # self.stacks.append([stack, sequence, row[0], rest_qty % stack_qty, row[2]])
                     sum_flange_wt = (rest_qty % stack_qty) * flange_wt
                     sum_web_wt = (rest_qty % stack_qty) * web_wt
+                    # sum_flange_wt = self.stacks[last_index][3] * flange_wt
+                    # sum_web_wt = self.stacks[last_index][3] * web_wt
                 else:
                     sequence -= 1
 
