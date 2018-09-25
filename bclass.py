@@ -344,9 +344,9 @@ class BATCH:
             temp_flange_qty = int((rest_qty * flange_wt) / limit_flange_wt)
             temp_qty = max(temp_flange_qty, temp_web_qty)
             if (temp_qty == temp_flange_qty) & (0 != temp_qty):
-                temp_qty = int(p_qty/int(p_qty/temp_qty))
+                temp_qty = int(rest_qty/int(p_qty/temp_qty))
             if (temp_qty == temp_web_qty) & (0 != temp_qty):
-                temp_qty = int(p_qty/int(p_qty/temp_qty))
+                temp_qty = int(rest_qty/int(p_qty/temp_qty))
 
             if temp_qty < 1:
                 self.stacks.append([stack, sequence, row[0], rest_qty, row[2]])

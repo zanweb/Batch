@@ -21,8 +21,8 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='main_window_code',
+          name='Batch_Beta',
           debug=False,
           strip=False,
           upx=True,
-          console=True )
+          console=False )
