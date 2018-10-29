@@ -1,4 +1,5 @@
 from lxml import etree
+import re
 
 
 class Head:
@@ -132,7 +133,8 @@ class XmlGen:
         self.header.make_direction = nc_info.header.make_direction
         self.header.part_name = nc_info.header.drawing
         self.header.order = nc_info.header.order
-        self.header.thickness = float(str(nc_info.header.profile).split('*')[1])
+        if re.findall(r'\d+\.\d+', str(nc_info.header.profile).split('*')[1]):
+            self.header.thickness = re.findall(r'\d+\.\d+', str(nc_info.header.profile).split('*')[1])[0]
         self.header.width = int(nc_info.header.profile_height)
         self.header.length = int(nc_info.header.length)
         self.header.quantity = int(nc_info.header.quantity)
