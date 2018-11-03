@@ -90,8 +90,8 @@ class XmlGen:
         pre_hole_y = 0.0
         for single_hole in holes:
             hole = Hole()
-            # 腹板16孔处理
-            if single_hole.diameter == 14:
+            # 腹板16孔处理 2018/11/03 加入腹板16孔径的兼容
+            if (single_hole.diameter == 14) or (single_hole.diameter == 16):
                 if single_hole.x == pre_hole_x:
                     continue
                 hole.x = single_hole.x
