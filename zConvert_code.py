@@ -126,6 +126,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         os.system("explorer %s" % explorer_fold)
         print(explorer_fold)
         if answer == QMessageBox.No:
+            os._exit(0)
             exit()
 
     def run(self):
