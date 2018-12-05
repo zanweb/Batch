@@ -265,6 +265,29 @@ class GetHoles(GetSection):
         return holes
 
 
+class GetExternalContour(GetSection):
+    def get_section(self, file_info):
+        aks = []
+        # print(file_info['AK'])
+        for ak in file_info['AK']:
+            single_ak = Contour()
+            single_ak_info = ak.split()
+            if len(single_ak_info) > 7:
+                single_ak.plane = single_ak_info[0]
+                pre_plane = single_ak_info[0]
+                single_ak.x = float(re.findall(r"\d+.?\d*", single_ak_info[1])[0])
+                single_ak.reference = single_ak_info[1][-1]
+                pre_reference = single_ak_info[1][-1]
+                single_ak.y = float(re.findall(r"\d+.?\d*", single_ak_info[2])[0])
+            else:
+                single_ak.plane = pre_plane
+                single_ak.reference = pre_reference
+                single_ak.x = float(re.findall(r"\d+.?\d*", single_ak_info[0])[0])
+                single_ak.y = float(re.findall(r"\d+.?\d*", single_ak_info[1])[0])
+            aks.append(single_ak)
+        return aks
+
+
 class SectionUndef(GetSection):
     def get_section(self, file_info):
         print('Un_define Section.')
@@ -275,6 +298,7 @@ class SectionFactory:
     section = {}
     section["ST"] = GetHeader()
     section["BO"] = GetHoles()
+    section["AK"] = GetExternalContour()
 
     def create_section(self, cs):
         if cs in self.section:
@@ -290,7 +314,7 @@ class Nc:  # nc file
         self.header = Header()
         self.holes = []
         self.mark = Mark
-        self.ak = Contour
+        self.ak = []
         self.file_info = {}
 
     # def __init__(self):
@@ -331,7 +355,8 @@ class Nc:  # nc file
             if isinstance(info, list):
                 if isinstance(info[0], Hole):
                     self.holes = info
-
+                if isinstance(info[0], Contour):
+                    self.ak = info
             # print(info)
         return self
 
@@ -393,12 +418,12 @@ def has_hole_nc(file_with_path):
 
 if __name__ == '__main__':
     # file_with_path = "E:/Zanweb/BMM test file/爱仕达11#NC文件/" + "L125.nc1"
-    file_with_path = 'E:\Zanweb\PythonProgram\Batch\Camgen\CK51836.nc1'
+    file_with_path = "D:\Work\\NC\HQ44894.nc1"
     if is_exist_nc(file_with_path):
         print('OK')
         nc = Nc(file_with_path)
         nc_data = nc.file_data
         nc_info = nc.file_information()
-        print(nc.holes)
+        print(nc_info.ak[0].plane)
     else:
         print('No')

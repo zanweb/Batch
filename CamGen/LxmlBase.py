@@ -141,6 +141,12 @@ class XmlGen:
         # deal with holes
         # print('deal with holes')
         plane_holes = self.get_plane_holes(nc_info.holes)
+        make_direction = self.check_make_direction(nc_info.ak)
+        if make_direction == -1:
+            for each_plan in plane_holes:
+                for each_hole in each_plan:
+                    each_hole.x = self.header.length - each_hole.x
+
         self.up_or_down(plane_holes[0])
         # print(plane_holes[2])
         if not self.up_to_down:
@@ -214,6 +220,30 @@ class XmlGen:
 
         notches = self.creat_sub_element('Notches', part)
         self.gen_xml(orders)
+
+    def horizontal_Flip(self):
+        pass
+
+    def check_make_direction(self, nc_aks):
+        # plane_aks = []
+        v_aks = []
+        u_aks = []
+        o_aks = []
+        for single_ak in nc_aks:
+            if single_ak.plane == 'v':
+                v_aks.append(single_ak)
+            if single_ak.plane == 'u':
+                u_aks.append(single_ak)
+            if single_ak.plane == 'o':
+                o_aks.append(single_ak)
+        y_list = []
+        for each_ak in v_aks:
+            y_list.append(each_ak.y)
+        max_y = max(y_list)
+        if max_y < 30:  # Bend down of top flange
+            return 0
+        else:  # Bend up of top flange, horizontal flip
+            return -1
 
 
 # ===================================================================================
