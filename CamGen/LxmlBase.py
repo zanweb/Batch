@@ -53,11 +53,14 @@ class XmlGen:
             # print(self.flange_hole_top_14)
 
     def up_or_down(self, o_holes):
-        if not o_holes:
+        if not o_holes:  # 如果上缘为空，上下不换
             self.up_to_down = False
-        else:
+        else:   # 如果上缘有8,12的孔，上下不换
             for single_hole in o_holes:
                 if single_hole.diameter == 8:
+                    self.up_to_down = False
+                    break
+                if single_hole.diameter == 12:
                     self.up_to_down = False
                     break
 
@@ -154,20 +157,28 @@ class XmlGen:
 
         self.up_or_down(plane_holes[0])
         # print(plane_holes[2])
+        # plane_holes, (o,u,v,h)
         if not self.up_to_down:
             self.add_top_side_holes(plane_holes[0])
             self.add_bottom_side_holes(plane_holes[1])
             self.add_web_holes(plane_holes[2])
+            self.add_web_holes(plane_holes[3])
         else:
             self.add_top_side_holes(plane_holes[1])
             self.add_bottom_side_holes(plane_holes[0])
+        if make_direction == -1:
             self.add_web_holes(plane_holes[2])
+            self.add_web_holes(plane_holes[3])
+        else:
+            self.add_web_holes(plane_holes[2])
+            self.add_web_holes(plane_holes[3])
 
     def get_plane_holes(self, nc_holes):
         plane_holes = []
         v_holes = []
         u_holes = []
         o_holes = []
+        h_holes = []
         # h_holes = []
         for single_hole in nc_holes:
             # print(single_hole.plane)
@@ -190,10 +201,17 @@ class XmlGen:
                 v_holes.append(single_hole)
             if single_hole.plane == 'v' and single_hole.reference == 's' and single_hole.hole_type == '':
                 v_holes.append(single_hole)
+            if single_hole.plane == 'h' and single_hole.reference == 'o' and single_hole.hole_type == '':
+                h_holes.append(single_hole)
+            if single_hole.plane == 'h' and single_hole.reference == 's' and single_hole.hole_type == '':
+                h_holes.append(single_hole)
+            if single_hole.plane == 'h' and single_hole.reference == 'u' and single_hole.hole_type == '':
+                h_holes.append(single_hole)
 
         plane_holes.append(o_holes)
         plane_holes.append(u_holes)
         plane_holes.append(v_holes)
+        plane_holes.append(h_holes)
         # print(o_holes)
         return plane_holes
 
