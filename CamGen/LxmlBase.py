@@ -161,8 +161,6 @@ class XmlGen:
         if not self.up_to_down:
             self.add_top_side_holes(plane_holes[0])
             self.add_bottom_side_holes(plane_holes[1])
-            self.add_web_holes(plane_holes[2])
-            self.add_web_holes(plane_holes[3])
         else:
             self.add_top_side_holes(plane_holes[1])
             self.add_bottom_side_holes(plane_holes[0])
