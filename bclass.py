@@ -137,7 +137,7 @@ class PART:
 
         self.man_hour_hw = (0.75 + 0.05 * weld_foot) * (1 + 0.3 * double_weld) * (10 + 0.001 * self.len)
         self.man_hour_hw += end_plate_qty * (10 + 0.002 * self.wid) * (1.82 + 0.001 * self.high) * (
-                    0.76 + 0.02 * self.flange_thk) * (1 + 0.2 * full_weld)
+                0.76 + 0.02 * self.flange_thk) * (1 + 0.2 * full_weld)
         self.man_hour_hw += stiff_qty * (5 + 0.0015 * self.wid)
         self.man_hour_hw += (6 + 0.0005 * self.len) * (0.7 + 0.0005 * self.wid)
         self.man_hour_hw += full_weld_qty * 15
@@ -311,13 +311,18 @@ class BATCH:
                 # pass
 
             # 能直接加入   2018/01/04
-            if (sum_flange_wt + flange_wt * p_qty) <= limit_flange_wt and (sum_web_wt + web_wt * p_qty) <= limit_web_wt:
+            if ((sum_flange_wt + flange_wt * p_qty) <= limit_flange_wt) and (
+                    (sum_web_wt + web_wt * p_qty) <= limit_web_wt):
                 self.stacks.append([stack, sequence, row[0], p_qty, row[2]])
                 sum_flange_wt += flange_wt * p_qty
                 sum_web_wt += web_wt * p_qty
                 old_flange_size = new_flange_size
                 continue
             # 不能直接加入
+            # 2019/06/13 sum_web_wt 如果大于 limit_web_wt , 合计重量清零
+            # if (limit_flange_wt<= sum_flange_wt) or (limit_web_wt<= sum_web_wt):
+            #     sum_flange_wt = 0
+            #     sum_web_wt = 0
             temp_web_qty = int((limit_web_wt - sum_web_wt) / web_wt)
             temp_flange_qty = int((limit_flange_wt - sum_flange_wt) / flange_wt)
             temp_qty = min(temp_web_qty, temp_flange_qty)
@@ -327,7 +332,7 @@ class BATCH:
                 stack += 1
                 sum_flange_wt = 0
                 sum_web_wt = 0
-                # rest_qty = p_qty
+                rest_qty = p_qty  # 2019/07/08
                 # self.stacks.append([stack, sequence, row[0], rest_qty, row[2]])
                 # old_flange_size = new_flange_size
                 # sum_flange_wt += flange_wt * rest_qty
@@ -344,9 +349,9 @@ class BATCH:
             temp_flange_qty = int((rest_qty * flange_wt) / limit_flange_wt)
             temp_qty = max(temp_flange_qty, temp_web_qty)
             if (temp_qty == temp_flange_qty) & (0 != temp_qty):
-                temp_qty = int(rest_qty/int(p_qty/temp_qty))
+                temp_qty = int(rest_qty / int(p_qty / temp_qty))
             if (temp_qty == temp_web_qty) & (0 != temp_qty):
-                temp_qty = int(rest_qty/int(p_qty/temp_qty))
+                temp_qty = int(rest_qty / int(p_qty / temp_qty))
 
             if temp_qty < 1:
                 self.stacks.append([stack, sequence, row[0], rest_qty, row[2]])
@@ -361,6 +366,10 @@ class BATCH:
                     self.stacks.append([stack, sequence, row[0], int(rest_qty / stack_qty), row[2]])
                     stack += 1
                     sequence += 1
+                    # 2019/06/13 换堆 清零
+                    # sum_web_wt = 0
+                    # sum_flange_wt = 0
+
                 if 0 != rest_qty % stack_qty:
                     last_index = len(self.stacks) - 1
                     self.stacks[last_index][3] = int(rest_qty / stack_qty) + rest_qty % stack_qty
