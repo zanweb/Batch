@@ -93,7 +93,7 @@ def get_all_orders():
     sql = "SELECT * FROM dbo.tblProj ORDER BY dbo.tblProj.ProjID DESC"
     return sql
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     all_orders = get_all_orders()
     print(all_orders)

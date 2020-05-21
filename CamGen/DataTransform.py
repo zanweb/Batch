@@ -2,6 +2,7 @@ from CamGen import FMIBase
 from CamGen import LxmlBase
 from CamGen import NCBase
 from CamGen import PedBase
+from DTRGen import TransformFunctions
 
 
 def __init(self):
@@ -129,10 +130,40 @@ class TSCIIData(DataFactory):
         return temp
 
 
-if __name__ == "__main__":
-    import zConvert_code
-    hole_name = {}
+class LysaghtRead(IReader):
+    def read(self, file_path):
+        temp = TransformFunctions.read_data_from_lysaght_engine(file_path)
+        return temp
 
+
+class DTRWrite(IWriter):
+    def write(self, orders, file_path):
+        temp = TransformFunctions.lysaght_to_dtr(orders, file_path)
+        return temp
+
+
+class LysaghtDTRData(DataFactory):
+    def get_data(self):
+        temp = LysaghtRead()
+        return temp
+
+    def set_data(self):
+        temp = DTRWrite()
+        return temp
+
+
+class ButlerDTRDate(DataFactory):
+    def get_data(self):
+        temp = NcRead()
+        return temp
+
+    def set_data(self):
+        temp = DTRWrite()
+        return temp
+
+
+if __name__ == "__main__":
+    hole_name = {}
 
     data = TSCIIData()
     reader = data.get_data()

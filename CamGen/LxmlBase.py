@@ -1,5 +1,9 @@
-from lxml import etree
 import re
+from itertools import groupby
+from operator import attrgetter
+
+from PyQt5.QtWidgets import QMessageBox
+from lxml import etree
 
 
 class Head:
@@ -36,6 +40,8 @@ class XmlGen:
         # o-plane no holes or has 8 diameter holes---False, o-plane on drive side
         # o-plane only 14 diameter holes -- True, o-plane on operate side
 
+        self.undefined_holes = []
+
     def set_hole_name(self, hole_name):
         for hole in hole_name:
             if hole['HoleType'] == 'TopFlange_14':
@@ -53,14 +59,11 @@ class XmlGen:
             # print(self.flange_hole_top_14)
 
     def up_or_down(self, o_holes):
-        if not o_holes:  # 如果上缘为空，上下不换
+        if not o_holes:
             self.up_to_down = False
-        else:   # 如果上缘有8,12的孔，上下不换
+        else:
             for single_hole in o_holes:
                 if single_hole.diameter == 8:
-                    self.up_to_down = False
-                    break
-                if single_hole.diameter == 12:
                     self.up_to_down = False
                     break
 
@@ -72,23 +75,27 @@ class XmlGen:
                 hole.y = single_hole.y
                 hole.type = self.flange_hole_top_14
                 self.holes.append(hole)
-            if single_hole.diameter == 8:
+            elif single_hole.diameter == 8:
                 hole = Hole()
                 hole.x = single_hole.x
                 hole.y = single_hole.y
                 hole.type = self.flange_hole_top_8
                 self.holes.append(hole)
+            else:
+                self.undefined_holes.append(single_hole)
 
     def add_bottom_side_holes(self, holes):
         for single_hole in holes:
-            if single_hole.diameter == 14:
+            if (single_hole.diameter == 14) or (single_hole.diameter == 16):
                 hole = Hole()
                 hole.x = single_hole.x
                 hole.y = single_hole.y
                 hole.type = self.flange_hole_bottom_16
                 self.holes.append(hole)
+            else:
+                self.undefined_holes.append(single_hole)
 
-    def add_web_holes(self, holes):
+    def add_web_holes_org(self, holes):
         pre_hole_x = 0.0
         pre_hole_y = 0.0
         for single_hole in holes:
@@ -108,8 +115,11 @@ class XmlGen:
                 self.holes.append(hole)
                 pre_hole_x = hole.x
             # 腹板腰圆孔处理
-            if single_hole.diameter == 13.5:
-                if single_hole.x == pre_hole_x or single_hole.x == (pre_hole_x + 75):
+            elif (single_hole.diameter == 13.5) or (single_hole.special == 'l'):
+                if single_hole.special == 'l':
+                    # nc 中标准长圆孔处理
+                    single_hole.x = single_hole.x + single_hole.width / 2
+                if (single_hole.x == pre_hole_x) or (single_hole.x == (pre_hole_x + 75)):
                     continue
                 hole.x = single_hole.x + 37.5
                 hole.y = 0.0
@@ -117,6 +127,47 @@ class XmlGen:
                 self.holes.append(hole)
                 pre_hole_x = hole.x - 37.5
                 pre_hole_y = single_hole.y
+            else:
+                self.undefined_holes.append(single_hole)
+
+    def add_web_holes(self, holes):
+        holes_group_y = []
+
+        # 腹板孔按x坐标分组
+        for x_index, x_group in groupby(holes, key=attrgetter('x')):
+            holes_group_y.append(list(x_group))
+        # 腹板孔处理
+        pre_group_x = 0.0
+        for group in holes_group_y:
+            hole = Hole()
+            # 腹板16孔处理 2018/11/03 加入腹板16孔径的兼容
+            if (group[0].diameter == 14) or (group[0].diameter == 16):
+                if group[0].x == pre_group_x:
+                    continue
+                hole.x = group[0].x
+                hole.y = 0.0
+                hole.type = self.web_hole_D
+                self.holes.append(hole)
+                hole = Hole()
+                hole.x = group[0].x
+                hole.y = 0.0
+                hole.type = self.web_hole_O
+                self.holes.append(hole)
+                pre_group_x = hole.x
+            # 腹板腰圆孔处理
+            elif (group[0].diameter == 13.5) or (group[0].special == 'l'):
+                if group[0].special == 'l':
+                    # nc 中标准长圆孔处理
+                    group[0].x = group[0].x + group[0].width / 2
+                if (group[0].x == pre_group_x) or (abs(group[0].x - (pre_group_x + 75)) <= 1):
+                    continue
+                hole.x = group[0].x + 37.5
+                hole.y = 0.0
+                hole.type = self.web_hole_khsx4
+                self.holes.append(hole)
+                pre_group_x = group[0].x
+            else:
+                self.undefined_holes.append(group[0])
 
     def creat_element(self, element_name):
         return etree.Element(element_name)
@@ -157,30 +208,34 @@ class XmlGen:
 
         self.up_or_down(plane_holes[0])
         # print(plane_holes[2])
-        # plane_holes, (o,u,v,h)
         if not self.up_to_down:
             self.add_top_side_holes(plane_holes[0])
             self.add_bottom_side_holes(plane_holes[1])
+            self.add_web_holes(plane_holes[2])
         else:
             self.add_top_side_holes(plane_holes[1])
             self.add_bottom_side_holes(plane_holes[0])
-        if make_direction == -1:
             self.add_web_holes(plane_holes[2])
-            self.add_web_holes(plane_holes[3])
-        else:
-            self.add_web_holes(plane_holes[2])
-            self.add_web_holes(plane_holes[3])
+
+        # 判断是否有未定义的孔：
+        if self.undefined_holes:
+            info = ''
+            for hole in self.undefined_holes:
+                info += '\n' + 'Dia:' + str(hole.diameter) + ',Type:' + hole.hole_type + ',Plane:' + hole.plane
+            QMessageBox.warning(None, '警告', self.header.part_name + '有未定义的孔\n' + info)
 
     def get_plane_holes(self, nc_holes):
         plane_holes = []
         v_holes = []
         u_holes = []
         o_holes = []
-        h_holes = []
         # h_holes = []
         for single_hole in nc_holes:
             # print(single_hole.plane)
             # print(single_hole.reference)
+            # 处理NC偏差#
+            single_hole.x = round(single_hole.x)
+            # single_hole.y = round(single_hole.y)
             if single_hole.plane == 'o' and single_hole.reference == 's' and single_hole.hole_type == '':
                 o_holes.append(single_hole)
             if single_hole.plane == 'o' and single_hole.reference == 'o' and single_hole.hole_type == '':
@@ -199,17 +254,10 @@ class XmlGen:
                 v_holes.append(single_hole)
             if single_hole.plane == 'v' and single_hole.reference == 's' and single_hole.hole_type == '':
                 v_holes.append(single_hole)
-            if single_hole.plane == 'h' and single_hole.reference == 'o' and single_hole.hole_type == '':
-                h_holes.append(single_hole)
-            if single_hole.plane == 'h' and single_hole.reference == 's' and single_hole.hole_type == '':
-                h_holes.append(single_hole)
-            if single_hole.plane == 'h' and single_hole.reference == 'u' and single_hole.hole_type == '':
-                h_holes.append(single_hole)
 
         plane_holes.append(o_holes)
         plane_holes.append(u_holes)
         plane_holes.append(v_holes)
-        plane_holes.append(h_holes)
         # print(o_holes)
         return plane_holes
 

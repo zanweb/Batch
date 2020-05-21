@@ -1,5 +1,5 @@
-import re
 import os
+import re
 
 bloc = ['ST',  # Beginning of piece description
         'EN',  # End of piece description
@@ -65,7 +65,7 @@ class Hole:  # bloc BO
     def __init__(self):
         self.plane = ''  # plane o=> top flange, v=>front web, u=>bottom flange, h=>behind web
         self.reference = ''
-        # reference o => Dimension rference top edge,
+        # reference o => Dimension reference top edge,
         # '' => previous dimensions reference,
         # s => dimensions reference axis,
         # u => dimensions reference bottom edge
@@ -417,13 +417,47 @@ def has_hole_nc(file_with_path):
 
 
 if __name__ == '__main__':
+    from pprint import pprint
+    from DTRGen.TransformFunctions import get_nc_plane_holes, gen_nc_part_to_lysaght, check_patterns, get_dtr_tools
+
     # file_with_path = "E:/Zanweb/BMM test file/爱仕达11#NC文件/" + "L125.nc1"
-    file_with_path = "D:\Work\\NC\HQ44894.nc1"
+    file_with_path = "E:\Desktop\易商2号库檩条测试梅花孔\\2-MM601.nc1"
     if is_exist_nc(file_with_path):
         print('OK')
         nc = Nc(file_with_path)
         nc_data = nc.file_data
         nc_info = nc.file_information()
-        print(nc_info.ak[0].plane)
+        print(nc_info.header.code_profile, '-- profile_high --> ', re.findall(r'\d+\.?\d*', nc_info.header.profile)[0],
+              ' -- flange_width--> ', nc_info.header.flange_width, ' -- thickness -->',
+              re.findall(r'\d+\.?\d*', nc_info.header.profile)[1])
+        pprint(nc_info.holes[0].plane)
+        for hole in nc_info.holes:
+            print(hole, hole.plane, hole.reference, hole.x, hole.y, hole.diameter, hole.special, hole.width)
+        # holes = get_nc_plane_holes(nc_info.holes)
+        # for hole_plan in holes:
+        #     for hole in hole_plan:
+        #         print(hole.x, hole.y, hole.diameter)
+
+        mm_inch = 25.4
+        tool_list = get_dtr_tools('./DTRTools.csv')
+
+        no_pattern_list = []
+
+        part = gen_nc_part_to_lysaght(nc_info)
+        for part_hole in part.holes:
+            print(part_hole)
+        part.special_change()
+        part.sort_holes()
+        part.group_holes_by_y()
+        double_list = part.convert_to_dtr_holes(tool_list)
+        no_pattern_list += double_list
+        no_pattern_list = check_patterns(
+            tool_list, part.dtr_holes, no_pattern_list)
+        no_pattern_list = [
+            dict(t) for t in {
+                tuple(
+                    d.items()) for d in no_pattern_list}]  # 字典列表去重
+        print(no_pattern_list)
+
     else:
         print('No')
