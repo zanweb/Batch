@@ -10,11 +10,13 @@ from itertools import groupby
 from operator import itemgetter
 
 from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem
 
 from FrameDataCenter import Ui_MainWindow
 from dbunit import DBUnit
 from Frame_Data_Center_Functions import *
+
+from GUI.Query88 import Query
 
 
 class UiMain(QMainWindow, Ui_MainWindow):
@@ -22,6 +24,7 @@ class UiMain(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.user_info = {'server': '', 'database': '', 'account': '', 'password': ''}
+        self.tab3 = Query()
 
     def ui_set(self):
         self.setWindowTitle(
@@ -94,8 +97,9 @@ class UiMain(QMainWindow, Ui_MainWindow):
     def on_push_button_clicked(self):
         self.tabWidget.clear()
         self.tabWidget.tabPosition()
-        self.tab3 = QWidget()
-        self.tabWidget.addTab(self.tab3, 'Tab 3')
+        self.tabWidget.addTab(self.tab3, '查询88')
+        self.tab3.get_user_info(self.user_info)
+
         pass
 
 
