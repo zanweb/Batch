@@ -22,9 +22,13 @@ from GUI.Query88 import Query
 class UiMain(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
+
         self.setupUi(self)
+        # self.showMaximized()
         self.user_info = {'server': '', 'database': '', 'account': '', 'password': ''}
-        self.tab3 = Query()
+        # self.tab3 = Query()
+        self.tab3 = None
+        self.push_button.setText('查询88')
 
     def ui_set(self):
         self.setWindowTitle(
@@ -95,6 +99,8 @@ class UiMain(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def on_push_button_clicked(self):
+        self.tab3 = Query()
+
         self.tabWidget.clear()
         self.tabWidget.tabPosition()
         self.tabWidget.addTab(self.tab3, '查询88')

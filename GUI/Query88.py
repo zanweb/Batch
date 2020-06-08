@@ -8,12 +8,14 @@ from PyQt5.QtCore import pyqtSlot
 import pymssql
 import pandas as pd
 
+
 class Query(QWidget):
     def __init__(self):
         super().__init__(None)
 
         self.user_info = None
-        self.head_list = ['ProjID', 'DateMH', 'EmpeName', 'WONo', 'PrtNo', 'Len', 'OracleItem', 'sumACT', 'sumQty', 'sumWt', 'sumWtPkgNo']
+        self.head_list = ['ProjID', 'DateMH', 'EmpeName', 'WONo', 'PrtNo', 'Len', 'sumACT', 'sumQty',
+                          'sumWt',  'OracleItem', 'sumWtPkgNo']
 
         self.btn_check = QPushButton(r'查询')
         self.btn_export = QPushButton(r'导出')
@@ -178,6 +180,7 @@ class Query(QWidget):
         return flag, info
 
     def on_btn_export_clicked(self):
+        file_name_tmp = ''
         if self.records:
             try:
                 tmp = pd.DataFrame(columns=self.head_list, data=self.records)
@@ -195,4 +198,3 @@ class Query(QWidget):
                 raise error
             finally:
                 return
-
