@@ -55,7 +55,7 @@ class UiMain(QMainWindow, Ui_MainWindow):
             conn = pymssql.connect(self.user_info['server'], self.user_info['account'], self.user_info['password'],
                                    self.user_info['database'])
             cursor = conn.cursor(as_dict=True)
-            sql = "SELECT [dbo].[tblMainTree].[NodeID],[Descp],[ParentID],[FormName],[Upts],[AutoNo] FROM [MfgmisCSSQL].[" \
+            sql = "SELECT [dbo].[tblMainTree].[NodeID],[Descp],[ParentID],[FormName],[Upts],[AutoNo] FROM [" \
                   "dbo].[tblMainTree] INNER JOIN [dbo].[tblMaintreeRight] ON [dbo].[tblMainTree].[NodeID] = [dbo].[" \
                   "tblMaintreeRight].[NodeID] WHERE [dbo].[tblMaintreeRight].[RolerID] = (SELECT [RolerID] FROM [dbo].[" \
                   "tblUser] WHERE [UserName] = '" + user_name + "') "
