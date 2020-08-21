@@ -17,6 +17,7 @@ from dbunit import DBUnit
 from Frame_Data_Center_Functions import *
 
 from GUI.Query88 import Query
+import pymssql
 
 
 class UiMain(QMainWindow, Ui_MainWindow):
@@ -39,20 +40,30 @@ class UiMain(QMainWindow, Ui_MainWindow):
         self.tree_widget_function_tree.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(self.get_tree_view_function)
         self.groupBox.close()
 
-    def get_role_tree_user_name(self, user_name):
-        sql = "SELECT [dbo].[tblMainTree].[NodeID] \
-      ,[Descp] \
-      ,[ParentID] \
-      ,[FormName] \
-      ,[Upts] \
-      ,[AutoNo] \
-  FROM [MfgmisCSSQL].[dbo].[tblMainTree] INNER JOIN [dbo].[tblMaintreeRight] \
-  ON [dbo].[tblMainTree].[NodeID] = [dbo].[tblMaintreeRight].[NodeID] \
-  WHERE [dbo].[tblMaintreeRight].[RolerID] = (SELECT [RolerID] FROM [dbo].[tblUser] WHERE [UserName] = '" + user_name + "')"
+    def get_role_tree_user_name_org(self, user_name):
+        sql = "SELECT [dbo].[tblMainTree].[NodeID],[Descp],[ParentID],[FormName],[Upts],[AutoNo] FROM [MfgmisCSSQL].[" \
+              "dbo].[tblMainTree] INNER JOIN [dbo].[tblMaintreeRight] ON [dbo].[tblMainTree].[NodeID] = [dbo].[" \
+              "tblMaintreeRight].[NodeID] WHERE [dbo].[tblMaintreeRight].[RolerID] = (SELECT [RolerID] FROM [dbo].[" \
+              "tblUser] WHERE [UserName] = '" + user_name + "') "
         db = DBUnit(self.user_info['account'], self.user_info['password'], self.user_info['server'],
                     self.user_info['database'])
         rs = db.read(sql)
         return rs
+
+    def get_role_tree_user_name(self, user_name):
+        try:
+            conn = pymssql.connect(self.user_info['server'], self.user_info['account'], self.user_info['password'],
+                                   self.user_info['database'])
+            cursor = conn.cursor(as_dict=True)
+            sql = "SELECT [dbo].[tblMainTree].[NodeID],[Descp],[ParentID],[FormName],[Upts],[AutoNo] FROM [MfgmisCSSQL].[" \
+                  "dbo].[tblMainTree] INNER JOIN [dbo].[tblMaintreeRight] ON [dbo].[tblMainTree].[NodeID] = [dbo].[" \
+                  "tblMaintreeRight].[NodeID] WHERE [dbo].[tblMaintreeRight].[RolerID] = (SELECT [RolerID] FROM [dbo].[" \
+                  "tblUser] WHERE [UserName] = '" + user_name + "') "
+            cursor.execute(sql)
+            rs = cursor.fetchall()
+            return rs
+        except Exception as error:
+            print(error)
 
     def set_tree_view_function(self, rs_data):
         self.tree_widget_function_tree.clear()
