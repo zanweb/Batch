@@ -171,6 +171,19 @@ class CsvFile:
         finally:
             return self.seq_info
 
+    def get_frame_items(self):
+        try:
+            with open(self.file_with_path) as f:
+                f_csv = csv.DictReader(f)
+                for row in f_csv:
+                    info_line = {'thickness': float(row['thickness']), 'item_oracle': row['item_oracle']}
+                    self.seq_info.append(info_line)
+                f.close()
+        except Exception as e:
+            print(e)
+        finally:
+            return self.seq_info
+
     def get_single_tool_id(self):
         try:
             with open(self.file_with_path) as f:
@@ -292,5 +305,5 @@ if __name__ == '__main__':
 
     csv_f = CsvFile('E:/Desktop/NC文件/1816474.csv')
     csv_info = csv_f.get_seq_list()
-    for row in csv_info:
-        print(row)
+    for row_one in csv_info:
+        print(row_one)

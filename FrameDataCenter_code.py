@@ -37,6 +37,7 @@ class UiMain(QMainWindow, Ui_MainWindow):
 
         self.create_function_tree()
         self.tree_widget_function_tree.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(self.get_tree_view_function)
+        self.groupBox.close()
 
     def get_role_tree_user_name(self, user_name):
         sql = "SELECT [dbo].[tblMainTree].[NodeID] \
@@ -60,6 +61,7 @@ class UiMain(QMainWindow, Ui_MainWindow):
         root.setText(0, '钢构车间管理系统')
 
         tree_group = []
+        rs_data.sort(key=itemgetter('NodeID'))
         for index, group_items in groupby(rs_data, key=itemgetter('ParentID')):
             tree_group.append([index, list(group_items)])
         first_element = None
@@ -95,7 +97,7 @@ class UiMain(QMainWindow, Ui_MainWindow):
     def get_tree_view_function(self, item, column):
         # item_get = self.tree_widget_function_tree.selectedItems()
         item_get = item.text(column)
-        select_functions(item_get)
+        select_functions(item_get, self)
 
     @pyqtSlot()
     def on_push_button_clicked(self):

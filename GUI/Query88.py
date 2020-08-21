@@ -3,10 +3,12 @@
 
 from PyQt5.QtWidgets import QWidget, QPushButton, QGroupBox, QRadioButton, QVBoxLayout, \
     QHBoxLayout, QLineEdit, QLabel, QTableWidget, QMessageBox, QTableWidgetItem
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 
 import pymssql
 import pandas as pd
+
+from datetime import datetime
 
 
 class Query(QWidget):
@@ -89,6 +91,7 @@ class Query(QWidget):
         vbox_line.addWidget(self.line_bng_date)
         vbox_line.addWidget(self.line_end_date)
         vbox_line.addWidget(self.line_emp_name)
+        self.line_emp_name.setText('%')
 
         hbox_line = QHBoxLayout()
         hbox_line.addLayout(vbox_lb)
@@ -122,7 +125,7 @@ class Query(QWidget):
 
     @pyqtSlot()
     def on_btn_check_clicked(self):
-        print(self.user_info)
+        # print(self.user_info)
         if not self.user_info:
             QMessageBox.warning(None, '警告', '无法取得用户信息')
             return
@@ -160,8 +163,19 @@ class Query(QWidget):
                 rs = records[index_row]
                 for index_col in range(0, len(rs)):
                     item = rs[index_col]
-                    new_item = QTableWidgetItem(str(item))
+                    print(type(item))
+                    if isinstance(item, float):
+                        str_item = '{:.2f}'.format(item)
+                    elif isinstance(item, datetime):
+                        str_item = str(item)[:10]
+                    else:
+                        str_item = str(item)
+                    new_item = QTableWidgetItem(str_item)
+                    if isinstance(item, float):
+                        new_item.setTextAlignment(Qt.AlignRight | Qt.AlignCenter)
                     self.table.setItem(index_row, index_col, new_item)
+            self.table.resizeColumnsToContents()
+            self.table.resizeRowsToContents()
 
     def check_parameter(self):
         flag = True
@@ -184,13 +198,15 @@ class Query(QWidget):
         if self.records:
             try:
                 tmp = pd.DataFrame(columns=self.head_list, data=self.records)
-                print(tmp)
+                # print(tmp)
+                str_bng = str(self.line_bng_date.text().replace('/', '-'))
+                str_end = str(self.line_end_date.text().replace('/', '-'))
                 if self.radio_line.isChecked():
-                    file_name_tmp = 'line.csv'
+                    file_name_tmp = 'line_' + str_bng + '_' + str_end + '.csv'
                 if self.radio_hand_weld.isChecked():
-                    file_name_tmp = 'hand_weld.csv'
+                    file_name_tmp = 'hand_weld' + str_bng + '_' + str_end + '.csv'
                 if self.radio_paint.isChecked():
-                    file_name_tmp = 'paint.csv'
+                    file_name_tmp = 'paint' + str_bng + '_' + str_end + '.csv'
                 tmp.to_csv(file_name_tmp, encoding='gbk')
                 QMessageBox.information(None, '信息', '导出成功!')
             except Exception as error:
