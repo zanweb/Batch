@@ -119,7 +119,7 @@ class Part:
             second_flange = list(set(second_flange))
             if len(second_flange) > 1:
                 for second in second_flange:
-                    if int(second.split('*')[0]) != flange_thickness:
+                    if float(second.split('*')[0]) != flange_thickness:
                         self.no_2_flange = second
 
         # 端板数量及其他板数量
@@ -269,7 +269,7 @@ class DialogBOMImport(QWidget):
     @pyqtSlot()
     def on_pb_construct_file_browser_clicked(self):
         file_name, file_type = QFileDialog.getOpenFileName(None, '请选取文件:', os.getcwd(),
-                                                           'All Files (*);;Excel Files (*.xls)')
+                                                           'All Files (*);;Excel Files (*.xls|*.xlsx|*.xlsm)')
         if file_name != '':
             self.line_construct_file.setText(file_name)
 
@@ -355,7 +355,7 @@ def convert_excel_to_parts(excel_path, ie_confirmed_parts=None):
             if tmp_sub_part is None:
                 tmp_sub_part = SubPart()
                 tmp_sub_part.init_data(*tmp_line)
-                if not seek_flag:
+                if seek_flag:
                     sub_part_list.append(tmp_sub_part)
             tmp_part.assembly.append([int(tmp_line[0]), tmp_sub_part])
     return parts_list, sub_part_list
