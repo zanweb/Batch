@@ -7,12 +7,14 @@
 
 from PyQt5.QtWidgets import QWidget, QGroupBox, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QFrame, QTabWidget, \
     QPushButton, QLineEdit, QGridLayout, QSpacerItem, QSizePolicy, QTextEdit, QMessageBox, QTableWidget, \
-    QTableWidgetItem, QAbstractItemView, QDateEdit
+    QTableWidgetItem, QAbstractItemView, QDateEdit, QFileDialog
 from PyQt5.QtCore import pyqtSlot, Qt
 from GUI.ComTools import RecordIndex
 import pymssql
 from CamGen import FramePart
 import datetime, time
+from Zfile.zPDF import PdfFile
+import os
 
 
 class UiProject(QWidget):
@@ -96,6 +98,7 @@ class UiProject(QWidget):
 
         self.btn_bom_import = QPushButton('BOM导入')
         self.btn_project_update = QPushButton('项目更新')
+        self.btn_mo_list_gen = QPushButton('生成MO列表')
 
         self.comb_project_id = QComboBox()
         self.comb_project_name = QComboBox()
@@ -132,8 +135,22 @@ class UiProject(QWidget):
             self.table_part_bom.selectionModel().selectionChanged.connect(self.sub_part_changed_in_table)
             self.btn_bom_import.clicked.connect(self.bom_import)
             self.btn_project_update.clicked.connect(self.project_update)
+            self.btn_mo_list_gen.clicked.connect(self.on_btn_mo_list_gen_clicked)
         except Exception as error:
             print(error)
+
+    @pyqtSlot()
+    def on_btn_mo_list_gen_clicked(self):
+        project_id = self.project_no.text()
+        folder_choose = QFileDialog.getExistingDirectory(None, '选取输出文件夹', os.getcwd())
+        if folder_choose != '':
+            pdf = PdfFile(folder_choose)
+            reply = pdf.gen_mo_list(project_id, self.user_info)
+            if reply:
+                QMessageBox.information(self, '保存:', 'PDF文件已保存!\n确定后将打开目标文件夹!')
+                os.chdir(folder_choose)
+                folder_path = os.getcwd()
+                os.system("start explorer %s" % folder_path)
 
     @pyqtSlot()
     def project_update(self):
@@ -414,7 +431,10 @@ class UiProject(QWidget):
 
     def show_parts_list(self, parts_list):
         self.table_parts_list.clear()
+        self.table_parts_list.setRowCount(0)
+        self.table_parts_list.setColumnCount(0)
         self.current_project_index = 0
+
         headers = ['项目号', '构件号', '构件长', '数量', '单件重', '总长', '总重', '描述', '满焊', '第2腹板', '第2翼板', '焊脚']
         if parts_list:
             self.table_parts_list.setColumnCount(len(parts_list[0]))
@@ -452,6 +472,8 @@ class UiProject(QWidget):
 
     def show_part_bom(self, part_bom):
         self.table_part_bom.clear()
+        self.table_part_bom.setRowCount(0)
+        self.table_part_bom.setColumnCount(0)
         headers = ['数量', '零件号', '描述', '厚', '宽', '长', '单重', '构件号', '总数', '总重', '总长', '比重', '项目号', '构件长', '构件号']
         if part_bom:
             self.table_part_bom.setColumnCount(len(part_bom[0]))
@@ -864,8 +886,10 @@ class UiProject(QWidget):
 
     def show_wo_sum(self, wo_sum):
         self.table_wo_sum.clear()
-        headers = ['工作令', '项目号', '构件号', '长度', '数量', 'sort']
+        self.table_wo_sum.setRowCount(0)
+        self.table_wo_sum.setColumnCount(0)
         if wo_sum:
+            headers = ['工作令', '项目号', '构件号', '长度', '数量', 'sort']
             self.table_wo_sum.setRowCount(len(wo_sum))
             self.table_wo_sum.setColumnCount(len(wo_sum[0]))
             self.table_wo_sum.setHorizontalHeaderLabels(headers)
@@ -884,14 +908,16 @@ class UiProject(QWidget):
             self.wo_sum_index.total = len(wo_sum)
             self.wo_sum_index.index = 1
 
-        self.table_wo_sum.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table_wo_sum.setStyleSheet("selection-background-color:rgb(0,0,255);selection-color:white")
-        self.table_wo_sum.selectRow(0)
+            self.table_wo_sum.setSelectionBehavior(QAbstractItemView.SelectRows)
+            self.table_wo_sum.setStyleSheet("selection-background-color:rgb(0,0,255);selection-color:white")
+            self.table_wo_sum.selectRow(0)
 
     def show_wo(self, wo):
         self.table_wo.clear()
-        headers = ['工作令', '项目号', '构件号', '长度', '数量', '返回', '取消', '自动编号', '包号']
+        self.table_wo.setRowCount(0)
+        self.table_wo.setColumnCount(0)
         if wo:
+            headers = ['工作令', '项目号', '构件号', '长度', '数量', '返回', '取消', '自动编号', '包号']
             self.table_wo.setRowCount(len(wo))
             self.table_wo.setColumnCount(len(wo[0]))
             self.table_wo.setHorizontalHeaderLabels(headers)
@@ -936,5 +962,6 @@ class UiProject(QWidget):
         vbox = QVBoxLayout()
         vbox.addWidget(self.btn_project_update)
         vbox.addWidget(self.btn_bom_import)
+        vbox.addWidget(self.btn_mo_list_gen)
         group_box.setLayout(vbox)
         return group_box

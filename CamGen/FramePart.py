@@ -679,11 +679,6 @@ def import_core(excel_path_construction, ex_file_ie, raw_bom_path, manifest_id, 
 
 
 def test02():
-    frame_dialog = DialogBOMImport()
-    frame_dialog.show()
-
-
-if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton
     import sys
 
@@ -694,3 +689,8 @@ if __name__ == '__main__':
     window.setCentralWidget(frame_dialog)
     window.show()
     sys.exit(app.exec_())
+
+
+
+if __name__ == '__main__':
+    pass
