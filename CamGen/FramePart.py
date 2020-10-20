@@ -477,6 +477,20 @@ def insert_many_assembly(assembly_part, db_info):
     conn = pymssql.connect(db_info['server'], db_info['account'], db_info['password'], db_info['database'])
     cur = conn.cursor()
     try:
+        # 先删除数据库中已有的bom
+        delete_part_assembly = []
+        for part in assembly_part:
+            sql = f"SELECT SubPrtNo FROM tblPrtAssm WHERE PrtNo='{part[1].part_no}' AND PrtLen={part[1].length}"
+            cur.execute(sql)
+            result = cur.fetchall()
+            conn.commit()
+            if result:
+                sql = f"DELETE FROM tblPrtAssm WHERE PrtNo='{part[1].part_no}' AND PrtLen={part[1].length}"
+                cur.execute(sql)
+                conn.commit()
+                delete_part_assembly.append((part[1].part_no, part[1].length))
+        if delete_part_assembly:
+            QMessageBox.warning(None, '警告', '数据库中原有的BOM已删除, 将导入当前的BOM:\n' + str(delete_part_assembly))
         for part in assembly_part:
             for item in part[1].assembly:
                 sql = f"SELECT SubPrtNo FROM tblPrtAssm WHERE PrtNo='{part[1].part_no}'" \

@@ -8,6 +8,9 @@
 from fpdf import FPDF
 import os
 import pymssql
+from operator import itemgetter
+from itertools import groupby
+from copy import deepcopy
 
 
 class PdfFile:
@@ -24,6 +27,167 @@ class PdfFile:
 
         reply = pdf.save(self.file_path)
         return reply
+
+    def gen_mo_print(self, project_id, user_info):
+        pdf = PdfMOPrint()
+        pdf.get_project_id(project_id)
+        pdf.get_user_info(user_info)
+        pdf.get_mo_info()
+        pdf.get_head_info()
+        pdf.context()
+
+        reply = pdf.save(self.file_path)
+        return reply
+
+
+class PdfMOPrint(FPDF):
+    def __init__(self):
+        super(PdfMOPrint, self).__init__()
+        self.add_font('仿宋', '', r'c:\windows\fonts\simfang.ttf', uni=True)
+
+        self.c_headers = ['数量', '零件号', '零件长度', '单个MO重量', '组MO重量']
+        self.c_headers_width = [30, 30, 30, 30, 30]
+        self.line_high = 5
+
+        self.user_info = None
+        self.project_id = None
+        self.wo = []
+
+        self.so = None
+        self.batch = None
+        self.project_name = None
+
+        self.alias_nb_pages()
+
+    def get_user_info(self, user_info):
+        self.user_info = user_info
+
+    def get_project_id(self, project_id):
+        self.project_id = project_id
+
+    def get_mo_info(self):
+        self.wo = []
+        try:
+            conn = pymssql.connect(self.user_info['server'], self.user_info['account'], self.user_info['password'],
+                                   self.user_info['database'])
+            cursor = conn.cursor()
+            sql = f"exec _PrcMOPrint @ProjectID='{self.project_id}'"
+            cursor.execute(sql)
+            for item in cursor.fetchall():
+                self.wo.append(item)
+            # print('wo: ', self.wo)
+            conn.close()
+        except Exception as error:
+            print(error)
+
+    def get_head_info(self):
+        if self.wo:
+            self.so = self.wo[0][11]  # 'SOrder'
+            self.batch = self.wo[0][12]  # 'Batch'
+            self.project_id = self.wo[0][0]  # 'ProjID'
+            self.project_name = self.wo[0][1]  # 'ProjName'
+
+    def header(self):
+        self.set_font('仿宋', '', 12)
+        self.cell(180, 8, 'MO Print For Frame Workshop', 0, 0, 'C')
+        self.set_line_width(0.5)
+        self.line(10, 18, 200, 18)
+        self.set_y(20)
+        self.set_font('仿宋', '', 8)
+        self.cell(20, 8, 'Order No:', 0, 0, 'R')
+        self.cell(40, 8, str(self.so), 0, 0, 'C')
+        self.cell(20, 8, 'Batch:', 0, 0, 'R')
+        self.cell(40, 8, str(self.batch), 0, 0, 'C')
+        self.set_y(28)
+        self.cell(20, 8, 'Project ID:', 0, 0, 'R')
+        self.cell(40, 8, str(self.project_id), 0, 0, 'C')
+        self.cell(20, 8, 'Project Name:', 0, 0, 'R')
+        self.cell(40, 8, str(self.project_name), 0, 0, 'C')
+        self.set_y(36)
+        self.line(10, 36, 200, 36)
+
+    def footer(self):
+        self.set_y(-20)
+        self.set_x(100)
+        self.cell(50,5,'流水线签字:',0,0,'L')
+        self.cell(10,5, '手工焊签字:',0,0,'L')
+        self.set_y(-10)
+        self.set_x(100)
+        self.cell(50,0,'日期:',0,0,'L')
+        self.cell(10,0, '日期:',0,0,'L')
+
+        # Position at 1.5 cm from bottom
+        self.set_y(-10)
+        # Arial italic 8
+        self.set_font('Arial', 'I', 8)
+        # Text color in gray
+        self.set_text_color(128)
+        # Page number
+        self.cell(0, 10, 'Page ' + str(self.page_no()) + '/{nb}', 0, 0, 'C')
+
+    def context(self):
+        k = 0
+        self.add_page()
+        sorted_wo = sorted(self.wo, key=itemgetter(2))
+        k_group = len([index for index, group in groupby(sorted_wo, itemgetter(2))])
+        for index, group in groupby(sorted_wo, itemgetter(2)):
+            bom_group = deepcopy(list(group))
+            self.cell(20, 10, 'MO号:', 0, 0, 'R')
+            self.cell(20, 10, bom_group[0][2], 0, 0, 'L')
+            self.cell(20, 10, '构件号:', 0, 0, 'R')
+            self.cell(20, 10, bom_group[0][3], 0, 0, 'C')
+            self.set_y(46)
+            self.cell(20, 10, '数量:', 0, 0, 'R')
+            self.cell(20, 10, str(bom_group[0][5]), 0, 0, 'L')
+            self.cell(20, 10, '长度:', 0, 0, 'R')
+            self.cell(20, 10, str(bom_group[0][4]), 0, 0, 'L')
+
+            self.set_font('仿宋', '', 18)
+            self.set_y(36)
+            self.set_x(-30)
+            self.cell(20, 20, bom_group[0][10], 1, 1, 'L')
+            self.set_y(56)
+
+            self.set_font('仿宋', '', 8)
+            for index_h, list_header in enumerate(self.c_headers):
+                self.cell(30, 8, list_header, 0, 0, 'R')
+            self.line(10, 64, 200, 64)
+            self.set_y(65)
+            single_wt = 0
+            group_wt = 0
+            for row_index, row in enumerate(bom_group):
+                for col_index, col in enumerate(row):
+                    if 5 <= col_index <= 9:
+                        if isinstance(col, (float, int)):
+                            str_col = '{:.2f}'.format(col)
+                        else:
+                            str_col = col.strip()
+                        self.cell(30, 6, str_col, 0, 0, 'R')
+                        if col_index == 8:
+                            single_wt = single_wt + col
+                        if col_index == 9:
+                            group_wt = group_wt + col
+                self.set_y(65 + (row_index + 1) * 6)
+            current_y = 65+(len(bom_group))*6
+            self.line(10,current_y, 200, current_y)
+
+            self.set_x(60)
+            self.cell(30,8, 'Total:', 0,0,'R')
+            self.cell(30,8, '{:.2f}'.format(single_wt), 0,0,'R')
+            self.cell(30,8, '{:.2f}'.format(group_wt), 0,0,'R')
+
+            k = k + 1
+            if k < k_group:
+                self.add_page()
+
+    def save(self, file_path):
+        try:
+            path = os.path.join(file_path, self.project_id + '_MO_Print.pdf')
+            self.output(path, 'F')
+            return 1
+        except Exception as error:
+            print(error)
+            return 0
 
 
 class PdfMOList(FPDF):
@@ -141,7 +305,7 @@ class PdfMOList(FPDF):
 
     def save(self, file_path):
         try:
-            path = os.path.join(file_path, self.project_id + 'MO_list.pdf')
+            path = os.path.join(file_path, self.project_id + '_MO_list.pdf')
             self.output(path, 'F')
             return 1
         except Exception as error:
@@ -169,13 +333,13 @@ class PdfMOList(FPDF):
             for item in cursor.fetchall():
                 self.project_info.append(item)
 
-            self.project_name = self.project_info[0][0]     # 'ProjName']
-            self.project_so = self.project_info[0][1]       # 'SOrder']
-            self.project_batch = self.project_info[0][2]    # 'Batch']
-            project_pm_id = self.project_info[0][3]         # 'ProjMgrID']
-            project_paint_id = self.project_info[0][4]      # 'PramPntID']
-            project_paint_color = self.project_info[0][5]   # 'ProjPntColor']
-            self.shipping_date = self.project_info[0][6]    # 'PlanShipDat']
+            self.project_name = self.project_info[0][0]  # 'ProjName']
+            self.project_so = self.project_info[0][1]  # 'SOrder']
+            self.project_batch = self.project_info[0][2]  # 'Batch']
+            project_pm_id = self.project_info[0][3]  # 'ProjMgrID']
+            project_paint_id = self.project_info[0][4]  # 'PramPntID']
+            project_paint_color = self.project_info[0][5]  # 'ProjPntColor']
+            self.shipping_date = self.project_info[0][6]  # 'PlanShipDat']
             self.project_total_qty = self.project_info[0][7]
             self.project_total_wt = self.project_info[0][8]
 
@@ -192,7 +356,7 @@ class PdfMOList(FPDF):
                 p_color = []
                 for item in cursor.fetchall():
                     p_color.append(item)
-                self.paint_color = p_color[0][0]    # 'ColorCN']
+                self.paint_color = p_color[0][0]  # 'ColorCN']
             if project_pm_id:
                 sql = f"SELECT NameEN FROM tblPhone WHERE AutoNo={project_pm_id}"
                 cursor.execute(sql)
@@ -230,5 +394,12 @@ def test01():
     pdf_mo_list.gen_mo_list('1901204501-2221-014C', user_data)
 
 
+def test02():
+    path = './'
+    pdf_mo_print = PdfFile(path)
+    user_data = {'server': '127.0.0.1\stlsojsvr04', 'database': 'MFGMISCSSQL', 'account': 'zyq', 'password': 'zyq123'}
+    pdf_mo_print.gen_mo_print('1602479201-2211-002C', user_data)
+
+
 if __name__ == '__main__':
-    test01()
+    test02()

@@ -14,7 +14,11 @@ import pymssql
 from CamGen import FramePart
 import datetime, time
 from Zfile.zPDF import PdfFile
+from Zfile.zExcel import ExcelFile
 import os
+import itertools
+import copy
+import re
 
 
 class UiProject(QWidget):
@@ -99,6 +103,8 @@ class UiProject(QWidget):
         self.btn_bom_import = QPushButton('BOM导入')
         self.btn_project_update = QPushButton('项目更新')
         self.btn_mo_list_gen = QPushButton('生成MO列表')
+        self.btn_mo_import = QPushButton('MO导入')
+        self.btn_mo_print = QPushButton('MO打印')
 
         self.comb_project_id = QComboBox()
         self.comb_project_name = QComboBox()
@@ -136,8 +142,137 @@ class UiProject(QWidget):
             self.btn_bom_import.clicked.connect(self.bom_import)
             self.btn_project_update.clicked.connect(self.project_update)
             self.btn_mo_list_gen.clicked.connect(self.on_btn_mo_list_gen_clicked)
+            self.btn_mo_import.clicked.connect(self.on_btn_mo_import_clicked)
+            self.btn_mo_print.clicked.connect(self.on_btn_mo_print_clicked)
         except Exception as error:
             print(error)
+
+    @pyqtSlot()
+    def on_btn_mo_print_clicked(self):
+        fold_mo_pdf = QFileDialog.getExistingDirectory(self, '请指定生成MO PDF文件的文件夹')
+        if fold_mo_pdf:
+            pdf = PdfFile(fold_mo_pdf)
+            reply = pdf.gen_mo_print(self.project_no.text(), self.user_info)
+
+            if reply == 1:
+                QMessageBox.information(None, '已保存', 'MO打印文件已保存!')
+            else:
+                QMessageBox.warning(None, '警告', 'MO打印文件未保存!')
+
+    @pyqtSlot()
+    def on_btn_mo_import_clicked(self):
+        project_id = self.project_no.text()
+        file_mo, _ = QFileDialog.getOpenFileName(self, '获取MO文件')
+        print(file_mo)
+        _, file_name = os.path.split(file_mo)
+        file_name, ext = os.path.splitext(file_name)
+        print(file_name)
+        if file_name:
+            if file_name != self.project_no.text():
+                QMessageBox.warning(None, '警告', '当前项目ID不是MO文件名,请确认!')
+                return
+            file_excel = ExcelFile(file_mo)
+            file_excel.openpyxl_read()
+            sheet_data = file_excel.sheet
+            mo_list = []
+            for index, item in enumerate(sheet_data):
+                tmp_line = []
+                # row_len = len(item)
+                for col_index, cell in enumerate(item):
+                    if cell:
+                        if col_index == 0:
+                            tmp_line.append(cell.value.split(':')[1])
+                        if col_index == 1:
+                            tmp_line.append(cell.value.split('*')[0][:7])
+                            tmp_line.append(cell.value.split('*')[1])
+                        if col_index == 3:
+                            pass
+                            # tmp_line.append(index)
+                        if col_index == 6:
+                            tmp_line.append(cell.value)
+                        if col_index == 7:
+                            tmp_line.append(cell.value)
+                        if col_index == 8:
+                            tmp_line.append(cell.value)
+                mo_list.append(tmp_line)
+            mo_list_sorted = sorted(mo_list, key=(lambda x: int(re.findall(r'(\d+)', x[4])[0])))
+            print(mo_list_sorted)
+            mo_sum_list = []
+            mo_list_fin = []
+            key_func = lambda x: x[2]
+            for key, group in itertools.groupby(mo_list_sorted, key_func):
+                # print(key + ":", list(group))
+                tmp_list = copy.deepcopy(list(group))
+                # print(tmp_list)
+                num = len(tmp_list)
+                tmp_sum = [tmp_list[0][0], tmp_list[0][1], tmp_list[0][2], tmp_list[0][3], tmp_list[0][4],
+                           tmp_list[0][5], num]
+                mo_sum_list.append(tmp_sum)
+                # print('-----------------', num)
+                if num > 1:
+                    for index in range(num):
+                        tmp_list[index][2] = tmp_list[index][2] + '-' + '{:04d}'.format(index + 1)
+                        # print(tmp_list[index])
+                        mo_list_fin.append(tmp_list[index])
+                else:
+                    mo_list_fin.append(tmp_list[0])
+                    # print(tmp_list[0])
+            print(mo_list_fin)
+            # ['2001189833', 'TGA3959', '37187743-0009', 1, '119J', 8990], ['2001189833', 'TGA3959', '37187743-0010', 1,
+            # '120J', 8990]]
+            print(mo_sum_list)
+            # ['2001189833', 'TGA3958', '37187742', 1, '101J', 10], ['2001189833', 'TGA3959', '37187743', 1, '111J', 10]]
+            conn = pymssql.connect(self.user_info['server'], self.user_info['account'], self.user_info['password'],
+                                   self.user_info['database'])
+            cur = conn.cursor()
+            try:
+                if mo_sum_list:
+                    sql = f"SELECT WONo FROM tblWOSum WHERE WONo='{mo_sum_list[0][2]}'"
+                    cur.execute(sql)
+                    result = cur.fetchall()
+                    conn.commit()
+                    if result:
+                        ans = QMessageBox.warning(None, '警告', '此MO-SUM已存在,是否删除重新导入?', QMessageBox.Yes | QMessageBox.No)
+                        if ans == QMessageBox.Yes:
+                            for item in mo_sum_list:
+                                sql = f"DELETE FROM tblWOSum WHERE WONo='{item[2]}'"
+                                cur.execute(sql)
+                                conn.commit()
+                        else:
+                            return
+
+                    for item in mo_sum_list:
+                        sql = f"INSERT INTO tblWOSum(WONo, ProjID, PrtNo, Length, Qty, SWO) " \
+                              f"VALUES('{item[2]}', '{self.project_no.text()}', '{item[1]}', {item[5]}, " \
+                              f"{item[6]},'{item[0]}') "
+                        cur.execute(sql)
+                        conn.commit()
+                if mo_list_fin:
+                    sql = f"SELECT WONo FROM tblWO WHERE WONo='{mo_list_fin[0][2]}'"
+                    cur.execute(sql)
+                    result = cur.fetchall()
+                    conn.commit()
+                    if result:
+                        ans = QMessageBox.warning(None, '警告', '此本MO已存在,是否删除重新导入?', QMessageBox.Yes | QMessageBox.No)
+                        if ans == QMessageBox.Yes:
+                            for item in mo_list_fin:
+                                sql = f"DELETE FROM tblWO WHERE WONo='{item[2]}'"
+                                cur.execute(sql)
+                                conn.commit()
+                        else:
+                            return
+
+                    for item in mo_list_fin:
+                        sql = f"INSERT INTO tblWO(WONo, ProjID, PrtNo, Len, Qty,PkgNo) " \
+                              f"VALUES('{item[2]}', '{self.project_no.text()}', '{item[1]}', {item[5]}, " \
+                              f"{item[3]}, '{item[4]}') "
+                        cur.execute(sql)
+                        conn.commit()
+            except Exception as error:
+                conn.rollback()
+                QMessageBox.warning(None, '警告', 'MO未人库!\n' + str(error))
+            conn.close()
+            QMessageBox.information(None, '信息', 'MO已成功入库!')
 
     @pyqtSlot()
     def on_btn_mo_list_gen_clicked(self):
@@ -163,10 +298,10 @@ class UiProject(QWidget):
             cursor = conn.cursor()
             sql = f"""
                     UPDATE tblProj SET ProjName=N'{self.project_name.text()}', \
-                    ProjPropID={self.project_type.currentIndex()-1 if self.project_type.currentIndex() != 0 else 0}, \
-                    ProjStatID={self.project_status.currentIndex()-1 if self.project_status.currentIndex() != 0 else 0}, \
-                    ProjMgrID={self.project_manager.currentIndex()-1 if self.project_manager.currentIndex() != 0 else 'NULL'}, \
-                    ProjEngrID={self.project_designer.currentIndex()-1 if self.project_designer.currentIndex() != 0 else 'NULL'}, \
+                    ProjPropID={self.project_type.currentIndex() - 1 if self.project_type.currentIndex() != 0 else 0}, \
+                    ProjStatID={self.project_status.currentIndex() - 1 if self.project_status.currentIndex() != 0 else 0}, \
+                    ProjMgrID={self.project_manager.currentIndex() - 1 if self.project_manager.currentIndex() != 0 else 'NULL'}, \
+                    ProjEngrID={self.project_designer.currentIndex() - 1 if self.project_designer.currentIndex() != 0 else 'NULL'}, \
                     TtlWt={float(self.project_wt.text()) if self.project_wt.text() else 0}, \
                     TtlQty={float(self.project_qty.text()) if self.project_qty.text() else 0}, \
                     SOrder={int(self.so.text()) if self.so.text() else 'NULL'}, \
@@ -176,7 +311,7 @@ class UiProject(QWidget):
                     PlanBng={("'" + self.plan_bng.text() + "'") if self.plan_bng.text() else 'NULL'}, \
                     PlanEnd={"'" + (self.plan_end.text()) + "'" if self.plan_end.text() else 'NULL'}, \
                     ActBng={("'" + self.real_bng.text() + "'") if self.real_bng.text() else 'NULL'}, \
-                    ActEnd={( "'" + self.real_end.text() + "'") if self.real_end.text() else 'NULL'}, \
+                    ActEnd={("'" + self.real_end.text() + "'") if self.real_end.text() else 'NULL'}, \
                     PlanShipDat={("'" + self.plan_shipping.text() + "'") if self.plan_shipping.text() else 'NULL'}, \
                     ActShipDat={("'" + self.real_shipping.text() + "'") if self.real_shipping.text() else 'NULL'}, \
                     DrwMK='{self.project_drawing.text() if self.project_drawing.text() else ''}', \
@@ -193,11 +328,11 @@ class UiProject(QWidget):
                     FabBng={("'" + self.line_bng.text() + "'") if self.line_bng.text() else 'NULL'}, \
                     FabEnd={("'" + self.line_end.text() + "'") if self.line_end.text() else 'NULL'}, \
                     PatBng={("'" + self.paint_bng.text() + "'") if self.paint_bng.text() else 'NULL'}, \
-                    PatEnd={("'" + self.paint_end.text() + "'")  if self.paint_end.text() else 'NULL'}, \
+                    PatEnd={("'" + self.paint_end.text() + "'") if self.paint_end.text() else 'NULL'}, \
                     Remark=N'{self.comment.toPlainText() if self.comment.toPlainText() else 'NULL'}', \
-                    ProjPntColor={self.paint_color.currentIndex()-1 if self.paint_color.currentIndex() != 0 else 'NULL'}, \
-                    PramPntID={self.pre_paint.currentIndex()-1 if self.pre_paint.currentIndex() != 0 else 'NULL'}, \
-                    FinePntID={self.surface_paint.currentIndex()-1 if self.surface_paint.currentIndex() != 0 else 'NULL'}, \
+                    ProjPntColor={self.paint_color.currentIndex() - 1 if self.paint_color.currentIndex() != 0 else 'NULL'}, \
+                    PramPntID={self.pre_paint.currentIndex() - 1 if self.pre_paint.currentIndex() != 0 else 'NULL'}, \
+                    FinePntID={self.surface_paint.currentIndex() - 1 if self.surface_paint.currentIndex() != 0 else 'NULL'}, \
                     BAANComp={("'" + self.ba_complete.text() + "'") if self.ba_complete.text() else 'NULL'}, \
                     UseRptComp={("'" + self.raw_complete.text() + "'") if self.raw_complete.text() else 'NULL'}, \
                     TMRelease={("'" + self.tm_received_date.text() + "'") if self.tm_received_date.text() else 'NULL'}  \
@@ -963,5 +1098,7 @@ class UiProject(QWidget):
         vbox.addWidget(self.btn_project_update)
         vbox.addWidget(self.btn_bom_import)
         vbox.addWidget(self.btn_mo_list_gen)
+        vbox.addWidget(self.btn_mo_import)
+        vbox.addWidget(self.btn_mo_print)
         group_box.setLayout(vbox)
         return group_box
