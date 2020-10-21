@@ -11,6 +11,7 @@ import pymssql
 from operator import itemgetter
 from itertools import groupby
 from copy import deepcopy
+import datetime
 
 
 class PdfFile:
@@ -88,21 +89,21 @@ class PdfMOPrint(FPDF):
             self.project_name = self.wo[0][1]  # 'ProjName'
 
     def header(self):
-        self.set_font('仿宋', '', 12)
+        self.set_font('仿宋', '', 18)
         self.cell(180, 8, 'MO Print For Frame Workshop', 0, 0, 'C')
         self.set_line_width(0.5)
         self.line(10, 18, 200, 18)
         self.set_y(20)
-        self.set_font('仿宋', '', 8)
+        self.set_font('仿宋', '', 12)
         self.cell(20, 8, 'Order No:', 0, 0, 'R')
-        self.cell(40, 8, str(self.so), 0, 0, 'C')
+        self.cell(70, 8, str(self.so), 0, 0, 'C')
         self.cell(20, 8, 'Batch:', 0, 0, 'R')
-        self.cell(40, 8, str(self.batch), 0, 0, 'C')
+        self.cell(70, 8, str(self.batch), 0, 0, 'C')
         self.set_y(28)
         self.cell(20, 8, 'Project ID:', 0, 0, 'R')
-        self.cell(40, 8, str(self.project_id), 0, 0, 'C')
+        self.cell(70, 8, str(self.project_id), 0, 0, 'C')
         self.cell(20, 8, 'Project Name:', 0, 0, 'R')
-        self.cell(40, 8, str(self.project_name), 0, 0, 'C')
+        self.cell(70, 8, str(self.project_name), 0, 0, 'C')
         self.set_y(36)
         self.line(10, 36, 200, 36)
 
@@ -122,7 +123,10 @@ class PdfMOPrint(FPDF):
         self.set_font('Arial', 'I', 8)
         # Text color in gray
         self.set_text_color(128)
+        self.cell(20,10,'Date Time:', 0,0,'L')
+        self.cell(20,10, str(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")), 0,0,'L')
         # Page number
+        self.set_x(-50)
         self.cell(0, 10, 'Page ' + str(self.page_no()) + '/{nb}', 0, 0, 'C')
 
     def context(self):
@@ -132,23 +136,24 @@ class PdfMOPrint(FPDF):
         k_group = len([index for index, group in groupby(sorted_wo, itemgetter(2))])
         for index, group in groupby(sorted_wo, itemgetter(2)):
             bom_group = deepcopy(list(group))
+            self.set_font('仿宋', '', 18)
             self.cell(20, 10, 'MO号:', 0, 0, 'R')
-            self.cell(20, 10, bom_group[0][2], 0, 0, 'L')
+            self.cell(50, 10, bom_group[0][2], 0, 0, 'L')
             self.cell(20, 10, '构件号:', 0, 0, 'R')
             self.cell(20, 10, bom_group[0][3], 0, 0, 'C')
             self.set_y(46)
             self.cell(20, 10, '数量:', 0, 0, 'R')
-            self.cell(20, 10, str(bom_group[0][5]), 0, 0, 'L')
+            self.cell(50, 10, str(bom_group[0][5]), 0, 0, 'L')
             self.cell(20, 10, '长度:', 0, 0, 'R')
             self.cell(20, 10, str(bom_group[0][4]), 0, 0, 'L')
 
-            self.set_font('仿宋', '', 18)
+            self.set_font('仿宋', '', 20)
             self.set_y(36)
             self.set_x(-30)
-            self.cell(20, 20, bom_group[0][10], 1, 1, 'L')
+            self.cell(20, 20, bom_group[0][10].strip(), 1, 1, 'C')
             self.set_y(56)
 
-            self.set_font('仿宋', '', 8)
+            self.set_font('仿宋', '', 12)
             for index_h, list_header in enumerate(self.c_headers):
                 self.cell(30, 8, list_header, 0, 0, 'R')
             self.line(10, 64, 200, 64)
