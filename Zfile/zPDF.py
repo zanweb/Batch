@@ -47,7 +47,7 @@ class PdfMOPrint(FPDF):
         self.add_font('仿宋', '', r'c:\windows\fonts\simfang.ttf', uni=True)
 
         self.c_headers = ['数量', '零件号', '零件长度', '单个MO重量', '组MO重量']
-        self.c_headers_width = [30, 30, 30, 30, 30]
+        self.c_headers_width = [30, 40, 30, 30, 30]
         self.line_high = 5
 
         self.user_info = None
@@ -95,12 +95,12 @@ class PdfMOPrint(FPDF):
         self.line(10, 18, 200, 18)
         self.set_y(20)
         self.set_font('仿宋', '', 12)
-        self.cell(20, 8, 'Order No:', 0, 0, 'R')
+        self.cell(25, 8, 'Order No:', 0, 0, 'R')
         self.cell(70, 8, str(self.so), 0, 0, 'C')
         self.cell(20, 8, 'Batch:', 0, 0, 'R')
         self.cell(70, 8, str(self.batch), 0, 0, 'C')
         self.set_y(28)
-        self.cell(20, 8, 'Project ID:', 0, 0, 'R')
+        self.cell(25, 8, 'Project ID:', 0, 0, 'R')
         self.cell(70, 8, str(self.project_id), 0, 0, 'C')
         self.cell(20, 8, 'Project Name:', 0, 0, 'R')
         self.cell(70, 8, str(self.project_name), 0, 0, 'C')
@@ -150,12 +150,15 @@ class PdfMOPrint(FPDF):
             self.set_font('仿宋', '', 20)
             self.set_y(36)
             self.set_x(-30)
-            self.cell(20, 20, bom_group[0][10].strip(), 1, 1, 'C')
+            self.cell(20, 18, bom_group[0][10].strip(), 1, 1, 'C')
             self.set_y(56)
 
             self.set_font('仿宋', '', 12)
             for index_h, list_header in enumerate(self.c_headers):
-                self.cell(30, 8, list_header, 0, 0, 'R')
+                if index_h == 1:
+                    self.cell(40, 8, list_header, 0, 0, 'R')
+                else:
+                    self.cell(30, 8, list_header, 0, 0, 'R')
             self.line(10, 64, 200, 64)
             self.set_y(65)
             single_wt = 0
@@ -167,7 +170,10 @@ class PdfMOPrint(FPDF):
                             str_col = '{:.2f}'.format(col)
                         else:
                             str_col = col.strip()
-                        self.cell(30, 6, str_col, 0, 0, 'R')
+                        if col_index == 6:
+                            self.cell(40, 6, str_col, 0, 0, 'R')
+                        else:
+                            self.cell(30, 6, str_col, 0, 0, 'R')
                         if col_index == 8:
                             single_wt = single_wt + col
                         if col_index == 9:
@@ -176,7 +182,7 @@ class PdfMOPrint(FPDF):
             current_y = 65+(len(bom_group))*6
             self.line(10,current_y, 200, current_y)
 
-            self.set_x(60)
+            self.set_x(80)
             self.cell(30,8, 'Total:', 0,0,'R')
             self.cell(30,8, '{:.2f}'.format(single_wt), 0,0,'R')
             self.cell(30,8, '{:.2f}'.format(group_wt), 0,0,'R')
